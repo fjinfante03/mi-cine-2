@@ -127,6 +127,11 @@
 
     <a href="#" onclick="abrirEstadisticas()">📊 Mis Estadísticas</a>
 
+    <hr>
+        <a href="#" onclick="exportarDatos()">💾 Guardar Copia</a>
+        <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
+        <a href="#" onclick="document.getElementById('import-file').click()">📂 Cargar Copia</a>
+
     <input type="file" id="input-foto-persona" style="display:none" accept="image/*">
 
     <script src="script.js"></script>
