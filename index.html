@@ -125,15 +125,29 @@
         </div>
     </div>
 
-    <a href="#" onclick="abrirEstadisticas()">📊 Mis Estadísticas</a>
+    <div style="margin-top: 20px; padding: 0 15px;">
+        <hr style="border: 0; border-top: 1px solid #333; margin-bottom: 20px;">
+    
+        <button onclick="abrirEstadisticas()" class="btn-menu-especial">
+            <span>📊</span> Mis Estadísticas
+        </button>
 
-    <hr>
-        <a href="#" onclick="exportarDatos()">💾 Guardar Copia</a>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <button onclick="exportarDatos()" class="btn-menu-dato">
+                <span>💾</span> Guardar
+            </button>
+        
+            <button onclick="document.getElementById('import-file').click()" class="btn-menu-dato">
+                <span>📂</span> Cargar
+            </button>
+        </div>
+    
         <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
-        <a href="#" onclick="document.getElementById('import-file').click()">📂 Cargar Copia</a>
+    </div>
 
     <input type="file" id="input-foto-persona" style="display:none" accept="image/*">
 
     <script src="script.js"></script>
 </body>
+
 </html>
