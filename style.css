@@ -223,4 +223,52 @@ input, select, textarea {
     justify-content: space-between;
     padding: 10px;
     border-bottom: 1px solid #333;
+
+}
+
+/* Botón de Estadísticas (Destacado) */
+.btn-menu-especial {
+    width: 100%;
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 1px solid #444;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.btn-menu-especial:active {
+    transform: scale(0.98);
+    border-color: var(--main-red);
+}
+
+/* Botones de Guardar/Cargar (Pequeños) */
+.btn-menu-dato {
+    background: #252525;
+    border: 1px solid #333;
+    color: #bbb;
+    padding: 12px 5px;
+    border-radius: 10px;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.btn-menu-dato span {
+    font-size: 20px;
+}
+
+.btn-menu-dato:active {
+    background: #333;
+    color: white;
 }
