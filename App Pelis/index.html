@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineTrack Pro - Mi Videoteca</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+    <div id="menu-lateral" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="toggleMenu()">×</a>
+        <div class="sidebar-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/2503/2503508.png" width="50" style="margin-left: 20px;">
+        </div>
+        <a href="#" onclick="volverInicio()">🏠 Inicio</a>
+        <a href="#" onclick="irA('pendientes')">🍿 Pendientes</a>
+        <a href="#" onclick="irA('vistas')">✅ Ya Vistas</a>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 10px 20px;">
+        <a href="#" onclick="abrirBiblioteca('actores')">👥 Mis Actores</a>
+        <a href="#" onclick="abrirBiblioteca('directores')">🎬 Mis Directores</a>
+    </div>
+
+    <div id="main">
+        <header>
+            <span class="menu-icon" onclick="toggleMenu()">☰</span>
+            <h1 onclick="volverInicio()">CineTrack</h1>
+        </header>
+
+        <div id="seccion-inicio" class="container">
+            <div class="card-form">
+                <h3 style="margin-top:0; color: #e50914;">Añadir nueva película</h3>
+                <input type="text" id="titulo" placeholder="Título de la película">
+                
+                <div class="fila">
+                    <input type="number" id="año" placeholder="Año" style="width: 30%;">
+                    <input type="text" id="genero" placeholder="Género (Ej: Acción, Drama)" style="width: 65%;">
+                </div>
+
+                <input type="text" id="director" placeholder="Director">
+                <input type="text" id="actores" placeholder="Reparto (separados por comas)">
+                
+                <select id="plataforma">
+                    <option value="" disabled selected>¿Dónde verla?</option>
+                    <option value="Netflix">Netflix</option>
+                    <option value="HBO MAX">HBO MAX</option>
+                    <option value="Amazon">Amazon Prime</option>
+                    <option value="Disney+">Disney+</option>
+                    <option value="Cine">Cine / Físico</option>
+                    <option value="Internet">Internet</option>
+                </select>
+                
+                <div class="upload-area" onclick="document.getElementById('input-file').click()">
+                    <div id="preview-portada">
+                        <p style="margin:0;">🖼️ Toca para subir el póster</p>
+                        <small style="color: #888;">Calidad optimizada</small>
+                    </div>
+                    <input type="file" id="input-file" hidden accept="image/*" onchange="previsualizar(this)">
+                </div>
+
+                <div id="campos-vistas-edit" class="fila" style="display:none; background: #222; padding: 10px; border-radius: 8px;">
+                    <div style="width: 100%;">
+                        <label style="font-size: 12px; color: #888;">Fecha y Nota:</label>
+                        <div class="fila">
+                            <input type="date" id="fechaVista" style="width: 60%;">
+                            <input type="number" id="nota" placeholder="Nota" min="1" max="10" style="width: 35%;">
+                        </div>
+                    </div>
+                </div>
+
+                <textarea id="sinopsis" placeholder="Escribe una breve sinopsis..."></textarea>
+                
+                <button class="btn-principal" id="btn-guardar" onclick="agregarNueva()">Guardar en mi lista</button>
+            </div>
+        </div>
+
+        <div id="seccion-listado" class="container" style="display:none">
+            <div class="buscador-container">
+                <h2 id="titulo-listado">🍿 Pendientes</h2>
+                
+                <div class="controles-listado">
+                    <input type="text" id="buscar-peli" placeholder="🔍 Buscar por título..." onkeyup="mostrarPelis()">
+                    
+                    <select id="ordenar-vistas" onchange="mostrarPelis()" style="display:none;">
+                        <option value="recientes">📅 Orden: Más Recientes</option>
+                        <option value="nota">⭐ Orden: Mejor Nota</option>
+                        <option value="veces">🔄 Orden: Más veces vistas</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="lista-items" class="grid-cartelera">
+                </div>
+        </div>
+
+        <div id="pantalla-biblioteca" class="container" style="display:none">
+            <div class="buscador-container">
+                <h2 id="titulo-biblio">Mi Reparto</h2>
+                <input type="text" id="buscar-reparto" placeholder="🔍 Buscar actor o director..." onkeyup="generarBiblioteca()">
+            </div>
+            <div id="grid-reparto" class="grid-biblioteca">
+                </div>
+        </div>
+    </div>
+
+    <div id="pantalla-estadisticas" class="container" style="display:none">
+            <div class="card-form">
+                <h2 style="color: var(--main-red); margin-top:0;">📊 Resumen de tu Cine</h2>
+                <div id="stats-resumen" class="grid-biblioteca" style="grid-template-columns: 1fr 1fr; gap:10px;">
+            </div>
+        <div id="stats-detalles" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <div id="zoom-modal" class="modal">
+        <span class="close" onclick="cerrarZoom()">&times;</span>
+        <div class="modal-content">
+            <div class="zoom-card">
+                <img id="img-zoom">
+                <div id="caption-zoom">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="#" onclick="abrirEstadisticas()">📊 Mis Estadísticas</a>
+
+    <input type="file" id="input-foto-persona" style="display:none" accept="image/*">
+
+    <script src="script.js"></script>
+</body>
+</html>
