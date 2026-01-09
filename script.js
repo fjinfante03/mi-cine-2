@@ -337,4 +337,53 @@ function calcularEstadisticas() {
             `).join('')}
         `;
     };
+
+}
+
+function abrirEstadisticas() {
+    toggleMenu(); // Cierra el menú al abrir stats
+    // Ocultar todas las pantallas
+    document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+    document.getElementById('seccion-inicio').style.display = 'none';
+    document.getElementById('seccion-listado').style.display = 'none';
+    
+    // Mostrar pantalla stats
+    const pantallaStats = document.getElementById('pantalla-estadisticas');
+    if(pantallaStats) {
+        pantallaStats.style.display = 'block';
+        calcularEstadisticas();
+    }
+}
+
+function exportarDatos() {
+    const tx = db.transaction("peliculas", "readonly");
+    tx.objectStore("peliculas").getAll().onsuccess = (e) => {
+        const data = JSON.stringify(e.target.result);
+        const blob = new Blob([data], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `cine_backup_${new Date().toLocaleDateString()}.json`;
+        a.click();
+    };
+}
+
+function importarDatos(input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const pelis = JSON.parse(e.target.result);
+            const tx = db.transaction("peliculas", "readwrite");
+            const store = tx.objectStore("peliculas");
+            pelis.forEach(p => store.put(p));
+            tx.oncomplete = () => {
+                alert("¡Base de datos actualizada!");
+                location.reload();
+            };
+        } catch (err) {
+            alert("Error al leer el archivo");
+        }
+    };
+    reader.readAsText(input.files[0]);
 }
