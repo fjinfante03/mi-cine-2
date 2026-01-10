@@ -1,6 +1,6 @@
 let db;
 let currentTab = 'todas';
-const request = indexedDB.open("CineTrackDB", 5);
+const request = indexedDB.open("CineTrackDB", 6);
 
 request.onupgradeneeded = (e) => {
     db = e.target.result;
@@ -18,16 +18,13 @@ function toggleMenu() {
 
 function mostrarSeccion(id) {
     document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
-    
     if (id === 'seccion-directores') generarPersonas('director');
     else if (id === 'seccion-actores') generarPersonas('actor');
     else if (id === 'pantalla-estadisticas') abrirEstadisticas();
     else {
         const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
-        const section = document.getElementById(target);
-        if (section) section.style.display = 'block';
+        document.getElementById(target).style.display = 'block';
     }
-    
     if (id === 'listado') cargarPeliculas();
     toggleMenu();
 }
@@ -35,6 +32,7 @@ function mostrarSeccion(id) {
 function agregarCampoActor(nombre = "", foto = "") {
     const div = document.createElement('div');
     div.className = "actor-input-row grid-2";
+    div.style.marginBottom = "8px";
     div.innerHTML = `<input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}">
                      <input type="text" placeholder="URL Foto" class="foto-actor" value="${foto}">`;
     document.getElementById('contenedor-actores').appendChild(div);
@@ -42,22 +40,10 @@ function agregarCampoActor(nombre = "", foto = "") {
 
 function validarYGuardar(estado) {
     const id = document.getElementById('edit-id').value;
-    // ... (reparto queda igual) ...
-    const peli = {
-        titulo: document.getElementById('titulo').value,
-        nombreDirector: document.getElementById('nombreDirector').value,
-        fotoDirector: document.getElementById('fotoDirector').value,
-        reparto: reparto,
-        fotoPortada: document.getElementById('fotoPortada').value,
-        nota: parseFloat(document.getElementById('nota').value) || 0,
-        fechaVista: document.getElementById('fechaVista').value, // NUEVO
-        duracion: parseInt(document.getElementById('duracion').value) || 0,
-        genero: document.getElementById('genero').value,
-        plataforma: document.getElementById('plataforma').value,
-        estado: estado
-    };
-    // ... (el resto del guardado igual) ...
-}
+    const reparto = Array.from(document.querySelectorAll('.actor-input-row')).map(f => ({
+        nombre: f.querySelector('.nombre-actor').value,
+        foto: f.querySelector('.foto-actor').value
+    })).filter(a => a.nombre);
 
     const peli = {
         titulo: document.getElementById('titulo').value,
@@ -66,6 +52,8 @@ function validarYGuardar(estado) {
         reparto: reparto,
         fotoPortada: document.getElementById('fotoPortada').value,
         nota: parseFloat(document.getElementById('nota').value) || 0,
+        fechaVista: document.getElementById('fechaVista').value,
+        vecesVista: parseInt(document.getElementById('vecesVista').value) || 1,
         duracion: parseInt(document.getElementById('duracion').value) || 0,
         genero: document.getElementById('genero').value,
         plataforma: document.getElementById('plataforma').value,
@@ -73,8 +61,8 @@ function validarYGuardar(estado) {
     };
 
     const tx = db.transaction("peliculas", "readwrite");
-    const store = tx.objectStore("peliculas");
-    if (id) { peli.id = parseInt(id); store.put(peli); } else { store.add(peli); }
+    if (id) { peli.id = parseInt(id); tx.objectStore("peliculas").put(peli); } 
+    else { tx.objectStore("peliculas").add(peli); }
     tx.oncomplete = () => location.reload();
 }
 
@@ -92,25 +80,26 @@ function cargarPeliculas() {
     
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         e.target.result.filter(p => {
-            const matchesTab = currentTab === 'todas' || p.estado === currentTab;
-            const matchesBusqueda = p.titulo.toLowerCase().includes(busqueda);
-            return matchesTab && matchesBusqueda;
+            const mTab = currentTab === 'todas' || p.estado === currentTab;
+            const mBusq = p.titulo.toLowerCase().includes(busqueda);
+            return mTab && mBusq;
         }).forEach(p => {
-            // Lógica para mostrar nota y fecha si está vista
-            const infoExtra = p.estado === 'vista' 
-                ? `<div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-gray); margin-top:5px;">
-                    <span>⭐ ${p.nota}</span>
-                    <span>📅 ${p.fechaVista ? new Date(p.fechaVista).toLocaleDateString() : 'S/F'}</span>
-                   </div>` 
-                : '';
-
+            const esVista = p.estado === 'vista';
+            const badgeNota = esVista ? `<div class="nota-badge">⭐ ${p.nota.toFixed(1)}</div>` : '';
+            const badgeVeces = (esVista && p.vecesVista > 1) ? `<div class="veces-badge">VISTA ${p.vecesVista} VECES</div>` : '';
+            
             const div = document.createElement('div');
             div.className = 'card-peli';
             div.innerHTML = `
-                <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
-                <div style="padding:10px;">
-                    <h4 style="margin:0; font-size:13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.titulo}</h4>
-                    ${infoExtra}
+                <div style="position: relative;">
+                    <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
+                    <div style="position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; align-items: flex-end;">
+                        ${badgeNota}${badgeVeces}
+                    </div>
+                </div>
+                <div style="padding:12px;">
+                    <h4 style="margin:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
+                    <div style="font-size:10px; color:#888; margin-top:4px;">${esVista && p.fechaVista ? '📅 ' + new Date(p.fechaVista).toLocaleDateString() : ''}</div>
                     <div style="display:flex; justify-content:space-between; margin-top:10px;">
                         <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
                         <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
@@ -133,21 +122,20 @@ function generarPersonas(tipo) {
                 if (!mapa[p.nombreDirector]) mapa[p.nombreDirector] = { foto: p.fotoDirector, pelis: [] };
                 mapa[p.nombreDirector].pelis.push(p.fotoPortada);
             } else if (tipo === 'actor' && p.reparto) {
-                p.reparto.forEach(actor => {
-                    if (!mapa[actor.nombre]) mapa[actor.nombre] = { foto: actor.foto, pelis: [] };
-                    mapa[actor.nombre].pelis.push(p.fotoPortada);
+                p.reparto.forEach(a => {
+                    if (!mapa[a.nombre]) mapa[a.nombre] = { foto: a.foto, pelis: [] };
+                    mapa[a.nombre].pelis.push(p.fotoPortada);
                 });
             }
         });
-
-        for (let nombre in mapa) {
+        for (let n in mapa) {
             const div = document.createElement('div');
             div.className = 'persona-card';
             div.innerHTML = `<div class="persona-header">
-                                <img src="${mapa[nombre].foto || 'https://via.placeholder.com/60'}" class="persona-img" onclick="ampliar('${mapa[nombre].foto}')">
-                                <h3 style="margin:0;">${nombre}</h3>
-                             </div>
-                             <div class="persona-pelis">${mapa[nombre].pelis.map(img => `<img src="${img}" class="mini-portada" onclick="ampliar('${img}')">`).join('')}</div>`;
+                <img src="${mapa[n].foto || 'https://via.placeholder.com/60'}" class="persona-img" onclick="ampliar('${mapa[n].foto}')">
+                <h3 style="margin:0;">${n}</h3>
+            </div>
+            <div class="persona-pelis">${mapa[n].pelis.map(img => `<img src="${img}" class="mini-portada" onclick="ampliar('${img}')">`).join('')}</div>`;
             contenedor.appendChild(div);
         }
     };
@@ -156,24 +144,18 @@ function generarPersonas(tipo) {
 function abrirEstadisticas() {
     document.getElementById('pantalla-estadisticas').style.display = 'block';
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        const p = e.target.result;
-        const vistas = p.filter(x => x.estado === 'vista');
-        const totalMins = vistas.reduce((a, b) => a + (b.duracion || 0), 0);
-        const media = vistas.reduce((a, b) => a + (b.nota || 0), 0) / (vistas.length || 1);
-        const plat = vistas.reduce((acc, x) => { acc[x.plataforma] = (acc[x.plataforma] || 0) + 1; return acc; }, {});
-        const gen = vistas.reduce((acc, x) => { acc[x.genero] = (acc[x.genero] || 0) + 1; return acc; }, {});
-
+        const v = e.target.result.filter(x => x.estado === 'vista');
+        const mins = v.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
+        const nota = v.reduce((a, b) => a + (b.nota || 0), 0) / (v.length || 1);
         document.getElementById('stats-content').innerHTML = `
-            <div class="persona-card" style="text-align:center; background: linear-gradient(180deg, #1a1a1a, #000);">
-                <h1 style="color:var(--main-red); margin:0; font-size:45px;">${vistas.length}</h1>
-                <p style="color:#888;">Películas Vistas</p>
-                <h2 style="margin:10px 0 0 0;">${Math.floor(totalMins/60)}h ${totalMins%60}min</h2>
-                <p style="color:#888;">Tiempo en Pantalla</p>
+            <div class="persona-card" style="text-align:center;">
+                <h1 style="color:var(--main-red); font-size:40px; margin:0;">${v.length}</h1>
+                <p>Películas Vistas</p>
+                <h2>${Math.floor(mins/60)}h ${mins%60}min</h2>
+                <p>Tiempo total invertido</p>
             </div>
             <div class="persona-card">
-                <p>⭐ Nota Media: <b style="color:gold;">${media.toFixed(1)}</b></p>
-                <p>📺 Plataforma Favorita: <b>${Object.keys(plat).sort((a,b) => plat[b]-plat[a])[0] || 'N/A'}</b></p>
-                <p>🎭 Género Favorito: <b>${Object.keys(gen).sort((a,b) => gen[b]-gen[a])[0] || 'N/A'}</b></p>
+                <p>⭐ Nota Media: <b>${nota.toFixed(1)}</b></p>
             </div>`;
     };
 }
@@ -186,8 +168,9 @@ function editar(id) {
         document.getElementById('nombreDirector').value = p.nombreDirector;
         document.getElementById('fotoDirector').value = p.fotoDirector;
         document.getElementById('fotoPortada').value = p.fotoPortada;
-        document.getElementById('fechaVista').value = p.fechaVista || "";
         document.getElementById('nota').value = p.nota;
+        document.getElementById('fechaVista').value = p.fechaVista || "";
+        document.getElementById('vecesVista').value = p.vecesVista || 1;
         document.getElementById('duracion').value = p.duracion;
         document.getElementById('genero').value = p.genero;
         document.getElementById('plataforma').value = p.plataforma;
@@ -197,25 +180,22 @@ function editar(id) {
     };
 }
 
-function eliminar(id) { if(confirm("¿Eliminar película?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => location.reload(); }
-function ampliar(src) { if(src) { document.getElementById('modal-img').style.display='flex'; document.getElementById('img-ampliada').src=src; } }
-
+function eliminar(id) { if(confirm("¿Borrar?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => location.reload(); }
+function ampliar(s) { if(s) { document.getElementById('modal-img').style.display='flex'; document.getElementById('img-ampliada').src=s; } }
 function exportarDatos() {
     db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
-        const blob = new Blob([JSON.stringify(e.target.result)], { type: "application/json" });
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); 
-        a.download = `CinePro_Backup_${new Date().toLocaleDateString()}.json`; a.click();
+        const b = new Blob([JSON.stringify(e.target.result)], { type: "application/json" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `Cine_Backup.json`; a.click();
     };
 }
-
-function importarDatos(input) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const pelis = JSON.parse(e.target.result);
+function importarDatos(i) {
+    const r = new FileReader();
+    r.onload = (e) => {
+        const ps = JSON.parse(e.target.result);
         const tx = db.transaction("peliculas", "readwrite");
-        pelis.forEach(p => tx.objectStore("peliculas").put(p));
-        tx.oncomplete = () => { alert("¡Importación completada!"); location.reload(); };
+        ps.forEach(p => tx.objectStore("peliculas").put(p));
+        tx.oncomplete = () => location.reload();
     };
-    reader.readAsText(input.files[0]);
+    r.readAsText(i.files[0]);
 }
 
