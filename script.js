@@ -1,7 +1,7 @@
 let db;
 let currentTab = 'todas';
 let miGrafico = null;
-const request = indexedDB.open("CineTrackDB", 7);
+const request = indexedDB.open("CineTrackDB", 8);
 
 request.onupgradeneeded = (e) => {
     db = e.target.result;
@@ -70,16 +70,19 @@ function validarYGuardar(estado) {
     };
 
     const tx = db.transaction("peliculas", "readwrite");
-    if (id) { peli.id = parseInt(id); tx.objectStore("peliculas").put(peli); } 
-    else { tx.objectStore("peliculas").add(peli); }
-    tx.oncomplete = () => location.reload();
+    const store = tx.objectStore("peliculas");
+    if (id) { peli.id = parseInt(id); store.put(peli); } 
+    else { store.add(peli); }
+    tx.oncomplete = () => window.location.reload();
 }
 
 function cargarPeliculas() {
     const lista = document.getElementById('lista-peliculas');
     const busqueda = document.getElementById('buscador').value.toLowerCase();
-    lista.innerHTML = "";
+    lista.innerHTML = ""; 
+
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
+        lista.innerHTML = ""; 
         e.target.result.filter(p => (currentTab === 'todas' || p.estado === currentTab) && p.titulo.toLowerCase().includes(busqueda))
         .forEach(p => {
             const esV = p.estado === 'vista';
@@ -94,7 +97,7 @@ function cargarPeliculas() {
                     </div>
                 </div>
                 <div style="padding:10px;">
-                    <h4 style="margin:0; font-size:14px;">${p.titulo}</h4>
+                    <h4 style="margin:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
                     <p style="font-size:10px; color:#888; margin:5px 0;">${esV && p.fechaVista ? '📅 ' + new Date(p.fechaVista).toLocaleDateString() : ''}</p>
                     <div style="display:flex; justify-content:space-between;">
                         <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan;">✏️</button>
@@ -107,15 +110,10 @@ function cargarPeliculas() {
 }
 
 function abrirEstadisticas() {
-    // 1. Forzamos que la sección sea visible primero
-    const seccion = document.getElementById('pantalla-estadisticas');
-    seccion.style.display = 'block';
-
+    document.getElementById('pantalla-estadisticas').style.display = 'block';
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         const vistas = e.target.result.filter(x => x.estado === 'vista');
         const mins = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
-        
-        // Agrupamos datos por género
         let genStats = {};
         vistas.forEach(p => {
             const g = p.genero || "Sin Género";
@@ -123,57 +121,6 @@ function abrirEstadisticas() {
             genStats[g].count++;
             genStats[g].time += (p.duracion || 0) * (p.vecesVista || 1);
         });
-
-        // Insertamos el texto de resumen
-        document.getElementById('stats-content').innerHTML = `
-            <div class="persona-card" style="text-align:center; background: #1a1a1a; border: 1px solid var(--main-red);">
-                <h1 style="color:var(--main-red); margin:0; font-size:45px;">${vistas.length}</h1>
-                <p style="color:#888; margin-bottom:10px;">Películas Vistas</p>
-                <h2 style="margin:5px 0;">${Math.floor(mins/60)}h ${mins%60}min</h2>
-                <p style="color:#888;">Tiempo total en pantalla</p>
-            </div>
-        `;
-
-        // 2. FUNCIÓN PARA DIBUJAR EL GRÁFICO (Con retraso para asegurar carga)
-        setTimeout(() => {
-            const ctx = document.getElementById('graficoGeneros');
-            
-            // Verificamos si la librería Chart existe
-            if (typeof Chart === 'undefined') {
-                console.error("La librería Chart.js no ha cargado. Revisa tu conexión o el enlace en el HTML.");
-                return;
-            }
-
-            if (miGrafico) miGrafico.destroy(); // Limpiamos rastro del anterior
-
-            miGrafico = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(genStats),
-                    datasets: [{
-                        label: 'Minutos',
-                        data: Object.values(genStats).map(g => g.time),
-                        backgroundColor: [
-                            '#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#141414'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: 'white', padding: 20, font: { size: 12 } }
-                        }
-                    }
-                }
-            });
-        }, 300); // 300ms de margen para que el navegador procese el canvas
-    };
-}
 
         document.getElementById('stats-content').innerHTML = `
             <div class="persona-card" style="text-align:center;">
@@ -184,6 +131,7 @@ function abrirEstadisticas() {
             </div>`;
 
         setTimeout(() => {
+            if (typeof Chart === 'undefined') return;
             const ctx = document.getElementById('graficoGeneros').getContext('2d');
             if (miGrafico) miGrafico.destroy();
             miGrafico = new Chart(ctx, {
@@ -192,13 +140,45 @@ function abrirEstadisticas() {
                     labels: Object.keys(genStats),
                     datasets: [{
                         data: Object.values(genStats).map(g => g.time),
-                        backgroundColor: ['#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8'],
-                        borderColor: '#141414'
+                        backgroundColor: ['#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6610f2'],
+                        borderColor: '#141414',
+                        borderWidth: 2
                     }]
                 },
-                options: { plugins: { legend: { position: 'bottom', labels: { color: 'white' } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { size: 11 } } } } 
+                }
             });
-        }, 200);
+        }, 300);
+    };
+}
+
+function generarPersonas(tipo) {
+    const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
+    contenedor.innerHTML = "";
+    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
+        let mapa = {};
+        e.target.result.forEach(p => {
+            if (tipo === 'director' && p.nombreDirector) {
+                if (!mapa[p.nombreDirector]) mapa[p.nombreDirector] = { foto: p.fotoDirector, pelis: new Set() };
+                mapa[p.nombreDirector].pelis.add(p.fotoPortada);
+            } else if (tipo === 'actor' && p.reparto) {
+                p.reparto.forEach(a => {
+                    if (!mapa[a.nombre]) mapa[a.nombre] = { foto: a.foto, pelis: new Set() };
+                    mapa[a.nombre].pelis.add(p.fotoPortada);
+                });
+            }
+        });
+        for (let n in mapa) {
+            const pelisArr = Array.from(mapa[n].pelis);
+            const div = document.createElement('div');
+            div.className = 'persona-card';
+            div.innerHTML = `<div class="persona-header"><img src="${mapa[n].foto || 'https://via.placeholder.com/60'}" class="persona-img"><h3>${n}</h3></div>
+            <div class="persona-pelis">${pelisArr.map(img => `<img src="${img}" class="mini-portada" onclick="ampliar('${img}')">`).join('')}</div>`;
+            contenedor.appendChild(div);
+        }
     };
 }
 
@@ -222,7 +202,7 @@ function editar(id) {
     };
 }
 
-function eliminar(id) { if(confirm("¿Borrar?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => location.reload(); }
+function eliminar(id) { if(confirm("¿Borrar?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => window.location.reload(); }
 function ampliar(s) { if(s) { document.getElementById('modal-img').style.display='flex'; document.getElementById('img-ampliada').src=s; } }
 function exportarDatos() {
     db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
@@ -236,37 +216,17 @@ function importarDatos(i) {
         const ps = JSON.parse(e.target.result);
         const tx = db.transaction("peliculas", "readwrite");
         ps.forEach(p => tx.objectStore("peliculas").put(p));
-        tx.oncomplete = () => location.reload();
+        tx.oncomplete = () => window.location.reload();
     };
     r.readAsText(i.files[0]);
 }
 
-function generarPersonas(tipo) {
-    const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
-    contenedor.innerHTML = "";
-    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        let mapa = {};
-        e.target.result.forEach(p => {
-            if (tipo === 'director' && p.nombreDirector) {
-                if (!mapa[p.nombreDirector]) mapa[p.nombreDirector] = { foto: p.fotoDirector, pelis: [] };
-                mapa[p.nombreDirector].pelis.push(p.fotoPortada);
-            } else if (tipo === 'actor' && p.reparto) {
-                p.reparto.forEach(a => {
-                    if (!mapa[a.nombre]) mapa[a.nombre] = { foto: a.foto, pelis: [] };
-                    mapa[a.nombre].pelis.push(p.fotoPortada);
-                });
-            }
-        });
-        for (let n in mapa) {
-            const div = document.createElement('div');
-            div.className = 'persona-card';
-            div.innerHTML = `<div class="persona-header"><img src="${mapa[n].foto || 'https://via.placeholder.com/60'}" class="persona-img"><h3>${n}</h3></div>
-            <div class="persona-pelis">${mapa[n].pelis.map(img => `<img src="${img}" class="mini-portada">`).join('')}</div>`;
-            contenedor.appendChild(div);
-        }
-    };
+function cambiarTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    cargarPeliculas();
 }
-
 
 
 
