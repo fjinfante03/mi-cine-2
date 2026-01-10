@@ -1,120 +1,31 @@
-:root {
-    --main-red: #e50914;
-    --dark-bg: #141414;
-    --card-bg: #1f1f1f;
-    --text-gray: #b3b3b3;
-}
-
-body { margin: 0; font-family: sans-serif; background: var(--dark-bg); color: white; overflow-x: hidden; }
-
-header {
-    background: #000; padding: 15px; display: flex; justify-content: space-between;
-    align-items: center; position: fixed; top: 0; width: 100%; z-index: 1000;
-    box-sizing: border-box; border-bottom: 1px solid #222;
-}
-
-.bar { width: 25px; height: 3px; background: white; margin: 4px 0; border-radius: 2px; }
-
+:root { --main-red: #e50914; --dark-bg: #141414; --card-bg: #1f1f1f; --text-gray: #b3b3b3; }
+body { margin: 0; font-family: sans-serif; background: var(--dark-bg); color: white; }
+header { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 1000; border-bottom: 1px solid #222; box-sizing: border-box;}
+.bar { width: 25px; height: 3px; background: white; margin: 4px 0; }
 main { margin-top: 70px; }
-
 .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-
-/* MENU */
-.side-menu {
-    height: 100%; width: 0; position: fixed; z-index: 2000; top: 0; left: 0;
-    background: #000; overflow-x: hidden; transition: 0.3s; padding-top: 20px;
-    border-right: 1px solid #222;
-}
-.side-menu a { padding: 18px 25px; text-decoration: none; color: var(--text-gray); display: block; font-size: 16px; border-bottom: 1px solid #111; }
-
-/* GRID SISTEMA */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.side-menu { height: 100%; width: 0; position: fixed; z-index: 2000; top: 0; left: 0; background: #000; overflow-x: hidden; transition: 0.3s; padding-top: 20px; border-right: 1px solid #222; }
+.side-menu a { padding: 15px 25px; text-decoration: none; color: var(--text-gray); display: block; }
+.side-menu hr { border: 0; border-top: 1px solid #222; margin: 10px 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-
-/* FORMULARIO */
+.actor-card-form { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #333; }
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
-.input-group input, .custom-select {
-    width: 100%; padding: 12px; background: #222; border: 1px solid #333;
-    color: white; border-radius: 8px; box-sizing: border-box;
-}
-.btn-add-actor { width: 100%; padding: 10px; background: #222; color: #888; border: 1px dashed #444; border-radius: 8px; margin-top: 5px; cursor: pointer; }
-
-/* Contenedor de cada actor en el formulario */
-.actor-card-form {
-    background: rgba(255, 255, 255, 0.05); /* Un fondo muy sutil */
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px; /* Separación entre el Actor 1, Actor 2, etc. */
-    border: 1px solid #333;
-}
-
-/* Espaciado entre el nombre y la foto dentro de la misma fila */
-.actor-card-form .grid-2 {
-    gap: 15px; /* Aquí controlamos la separación horizontal */
-}
-
-/* Botón pequeño para quitar un actor si nos equivocamos */
-.btn-eliminar-actor {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 11px;
-    cursor: pointer;
-    margin-top: 5px;
-    text-align: right;
-    width: 100%;
-}
-
-.btn-eliminar-actor:hover {
-    color: var(--main-red);
-}
-
-/* Ajuste para que los inputs de actores no sean tan altos */
-.actor-card-form input {
-    margin-bottom: 0 !important;
-}
-
-/* TARJETAS BIBLIOTECA */
-.grid-peliculas { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.card-peli { background: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; }
-.img-peli { width: 100%; height: 230px; object-fit: cover; }
-
-/* BADGES SOBRE IMAGEN */
-.nota-badge { background: rgba(0,0,0,0.8); color: #ffc107; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 13px; border: 1px solid #ffc107; }
-.veces-badge { background: var(--main-red); color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-top: 5px; text-align: center; }
-
-/* TABS */
-.tabs { display: flex; gap: 5px; margin-bottom: 20px; }
-.tab-btn { flex: 1; padding: 12px; background: #222; color: #888; border: none; border-radius: 8px; font-weight: bold; }
-.tab-btn.active { background: var(--main-red); color: white; }
-
-/* PERSONAS */
-.persona-card { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-.persona-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-.persona-img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--main-red); }
-.persona-pelis { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
-.mini-portada { width: 65px; height: 95px; border-radius: 6px; flex-shrink: 0; object-fit: cover; }
-
-/* BOTONES */
-.btn-save { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; color: white;}
+.input-group input, .custom-select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+.btn-save { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; color: white; margin-bottom: 10px; }
 .bg-red { background: var(--main-red); }
 .bg-green { background: #28a745; }
 .bg-yellow { background: #ffc107; color: black; }
-
-/* MODAL */
+.grid-peliculas { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.card-peli { background: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; }
+.img-peli { width: 100%; height: 230px; object-fit: cover; }
+.nota-badge { background: rgba(0,0,0,0.8); color: #ffc107; padding: 4px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #ffc107; }
+.veces-badge { background: var(--main-red); color: white; padding: 3px 6px; border-radius: 4px; font-size: 10px; margin-top: 5px; }
+.tabs { display: flex; gap: 5px; margin-bottom: 20px; }
+.tab-btn { flex: 1; padding: 10px; background: #222; color: #888; border: none; border-radius: 8px; }
+.tab-btn.active { background: var(--main-red); color: white; }
+.persona-card { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #222; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; }
 .modal img { max-width: 90%; max-height: 80%; }
-.welcome-card { background: #1a1a1a; padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid #333; }
-
-.side-menu hr {
-    border: 0;
-    border-top: 1px solid #222;
-    margin: 5px 20px;
-}
-
-.side-menu a:hover {
-    background: #1a1a1a;
-    color: var(--main-red);
-}
 
