@@ -21,12 +21,13 @@
     <nav id="side-menu" class="side-menu">
         <div class="menu-header"><h2>Menú</h2><span onclick="toggleMenu()">&times;</span></div>
         <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
-        <a href="#" onclick="mostrarSeccion('listado')">🎬 Mi Biblioteca</a>
-        <a href="#" onclick="mostrarSeccion('seccion-directores')">🎬 Directores</a>
+        <a href="#" onclick="irAListadoEspecial('vista')">🎬 Pelis Vistas</a> <a href="#" onclick="irAListadoEspecial('pendiente')">⏳ Pelis Pendientes</a> <a href="#" onclick="mostrarSeccion('listado')">📚 Toda la Biblioteca</a>
+        <hr style="border: 0; border-top: 1px solid #222; margin: 10px 0;">
+        <a href="#" onclick="mostrarSeccion('seccion-directores')">👤 Directores</a>
         <a href="#" onclick="mostrarSeccion('seccion-actores')">🎭 Actores</a>
         <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
         <a href="#" onclick="mostrarSeccion('pantalla-estadisticas')">📊 Estadísticas</a>
-        <a href="#" onclick="mostrarSeccion('seccion-ajustes')">⚙️ Ajustes y Copia</a>
+        <a href="#" onclick="mostrarSeccion('seccion-ajustes')">⚙️ Ajustes</a>
     </nav>
 
     <main>
@@ -145,6 +146,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
