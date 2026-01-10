@@ -199,3 +199,20 @@ function importarDatos(i) {
     r.readAsText(i.files[0]);
 }
 
+// Función especial para ir al listado con un filtro ya aplicado
+function irAListadoEspecial(estado) {
+    // 1. Cambiamos la pestaña interna
+    currentTab = estado;
+    
+    // 2. Mostramos la sección del listado
+    mostrarSeccion('listado');
+    
+    // 3. Actualizamos visualmente los botones de las pestañas (tabs)
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + estado).classList.add('active');
+    
+    // 4. Forzamos la recarga de las películas con el nuevo filtro
+    cargarPeliculas();
+}
+
+
