@@ -3,30 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Cine</title>
+    <title>CinePro Manager</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <div class="menu-icon" onclick="toggleMenu()" style="padding: 10px; margin-left: -10px;">
+        <div class="menu-icon" onclick="toggleMenu()">
             <div class="bar"></div>
-            <div class="bar" style="margin: 4px 0;"></div>
+            <div class="bar"></div>
             <div class="bar"></div>
         </div>
-        <h1 style="font-size: 18px; margin: 0; color: var(--main-red); font-weight: bold; letter-spacing: 1px;">MI CINE</h1>
-        <div style="width: 45px;"></div> </header>
+        <h1>MI CINE</h1>
+        <div style="width: 45px;"></div>
+    </header>
 
     <nav id="side-menu" class="side-menu">
-        <div class="menu-header">
-            <h2 style="margin:0; border:none; font-size: 18px;">Menú</h2>
-            <span onclick="toggleMenu()" style="font-size: 30px; cursor:pointer;">&times;</span>
-        </div>
-        
+        <div class="menu-header"><h2>Menú</h2><span onclick="toggleMenu()">&times;</span></div>
         <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
-        <a href="#" onclick="mostrarSeccion('listado')">🎬 Mi Biblioteca</a>
+        <a href="#" onclick="mostrarSeccion('listado')">🎬 Biblioteca</a>
+        <a href="#" onclick="mostrarSeccion('seccion-personas')">👥 Actores y Directores</a>
         <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
-
         <div class="menu-tools">
             <button onclick="abrirEstadisticas()" class="btn-menu-especial">📊 Estadísticas</button>
             <div class="grid-tools">
@@ -38,59 +35,70 @@
     </nav>
 
     <main>
-        <section id="seccion-inicio" class="container">
-            <div style="background: linear-gradient(rgba(0,0,0,0.6), #141414), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=500'); height: 200px; border-radius: 15px; display: flex; align-items: center; justify-content: center; text-align: center; margin-bottom: 20px; background-size: cover;">
-                <h2 style="border:none;">¡Bienvenido de nuevo!</h2>
-            </div>
-            <button onclick="mostrarSeccion('nueva-peli')" class="btn-save" style="width:100%; background: var(--main-red); color: white;">Añadir nueva película</button>
-        </section>
-
         <section id="nueva-peli" class="container" style="display:none;">
-            <h2>Nueva Película</h2>
+            <h2 id="form-title">Nueva Película</h2>
             <form id="form-pelicula">
+                <input type="hidden" id="edit-id">
+                <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
+                <div class="input-group"><label>Director (Nombre)</label><input type="text" id="nombreDirector"></div>
+                <div class="input-group"><label>Foto Director (URL)</label><input type="text" id="fotoDirector"></div>
+                <div class="input-group"><label>Actores (Separados por coma)</label><input type="text" id="actores" placeholder="Ej: Brad Pitt, Margot Robbie"></div>
+                <div class="input-group"><label>Foto Actor Principal (URL)</label><input type="text" id="fotoActor"></div>
                 <div class="input-group">
-                    <label>Título de la película</label>
-                    <input type="text" id="titulo" placeholder="Ej: Pulp Fiction" required>
+                    <label>Género</label>
+                    <select id="genero" class="custom-select">
+                        <option value="Acción">Acción</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Comedia">Comedia</option>
+                        <option value="Terror">Terror</option>
+                        <option value="Ciencia Ficción">Ciencia Ficción</option>
+                    </select>
                 </div>
-
                 <div class="input-group">
-                    <label>Director (URL de la foto)</label>
-                    <input type="text" id="fotoDirector" placeholder="Pega el enlace de la imagen...">
+                    <label>Plataforma</label>
+                    <select id="plataforma" class="custom-select">
+                        <option value="Netflix">Netflix</option>
+                        <option value="Prime Video">Prime Video</option>
+                        <option value="Disney+">Disney+</option>
+                        <option value="HBO Max">HBO Max</option>
+                        <option value="Cine/Otro">Cine / Otro</option>
+                    </select>
                 </div>
-
-                <div class="input-group">
-                    <label>Actor/Actriz (URL de la foto)</label>
-                    <input type="text" id="fotoActor" placeholder="Pega el enlace de la imagen...">
+                <div class="grid-2">
+                    <div class="input-group"><label>Minutos</label><input type="number" id="duracion"></div>
+                    <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1"></div>
                 </div>
-
-                <div class="input-group">
-                    <label>Duración (Minutos)</label>
-                    <input type="number" id="duracion" placeholder="Ej: 120">
-                </div>
-
-                <div class="input-group">
-                    <label>Tu Nota (1 al 10)</label>
-                    <input type="number" id="nota" step="0.1" min="0" max="10" placeholder="Ej: 8.5">
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
-                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save" style="background: #28a745; color: white;">🎬 VISTA</button>
-                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save" style="background: #ffc107; color: black;">⏳ PENDIENTE</button>
+                <div class="grid-2">
+                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">🎬 VISTA</button>
+                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">⏳ PENDIENTE</button>
                 </div>
             </form>
         </section>
 
         <section id="seccion-listado" class="container" style="display:none;">
-            <h2>Mi Biblioteca</h2>
+            <input type="text" id="buscador" placeholder="🔍 Buscar por título, actor..." oninput="filtrarPeliculas()">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
+                <button class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
+                <button class="tab-btn" onclick="cambiarTab('pendiente')">Pendientes</button>
+            </div>
             <div id="lista-peliculas" class="grid-peliculas"></div>
         </section>
 
+        <section id="seccion-personas" class="container" style="display:none;">
+            <h2>Actores y Directores</h2>
+            <div id="lista-personas"></div>
+        </section>
+
         <section id="pantalla-estadisticas" class="container" style="display:none;">
-            <h2>Estadísticas</h2>
+            <h2>Estadísticas Pro</h2>
             <div id="stats-content"></div>
-            <button onclick="mostrarSeccion('inicio')" class="btn-save" style="width:100%; margin-top:20px; background:#333; color:white;">Volver</button>
         </section>
     </main>
+
+    <div id="modal-img" class="modal" onclick="this.style.display='none'">
+        <img id="img-ampliada">
+    </div>
 
     <script src="script.js"></script>
 </body>
