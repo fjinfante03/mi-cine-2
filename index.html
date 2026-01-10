@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Manager</title>
+    <title>CinePro Ultra</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,10 +39,10 @@
     <main>
         <section id="seccion-inicio" class="container">
             <div class="welcome-card">
-                <h2>¡Bienvenido!</h2>
-                <p>Gestiona tus películas, actores y directores.</p>
+                <h2>CinePro Ultra</h2>
+                <p>Tu base de datos personal con actores y directores.</p>
             </div>
-            <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Nueva Película</button>
+            <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Añadir Película</button>
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
@@ -50,10 +50,24 @@
             <form id="form-pelicula">
                 <input type="hidden" id="edit-id">
                 <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
-                <div class="input-group"><label>Director (Nombre)</label><input type="text" id="nombreDirector"></div>
-                <div class="input-group"><label>Foto Director (URL)</label><input type="text" id="fotoDirector"></div>
-                <div class="input-group"><label>Actores (Separados por coma)</label><input type="text" id="actores" placeholder="Brad Pitt, Tom Cruise..."></div>
-                <div class="input-group"><label>Foto Principal (Actor/Portada URL)</label><input type="text" id="fotoActor"></div>
+                
+                <div class="grid-2">
+                    <div class="input-group"><label>Director</label><input type="text" id="nombreDirector"></div>
+                    <div class="input-group"><label>URL Foto Dir.</label><input type="text" id="fotoDirector"></div>
+                </div>
+
+                <div class="input-group">
+                    <label>Reparto (Actores y sus fotos)</label>
+                    <div id="contenedor-actores">
+                        <div class="actor-input-row grid-2">
+                            <input type="text" placeholder="Nombre" class="nombre-actor">
+                            <input type="text" placeholder="URL Foto" class="foto-actor">
+                        </div>
+                    </div>
+                    <button type="button" onclick="agregarCampoActor()" class="btn-add-actor">➕ Añadir otro actor</button>
+                </div>
+
+                <div class="input-group"><label>Portada Película (URL)</label><input type="text" id="fotoPortada"></div>
                 
                 <div class="grid-2">
                     <div class="input-group">
@@ -64,7 +78,7 @@
                             <option value="Comedia">Comedia</option>
                             <option value="Terror">Terror</option>
                             <option value="Ciencia Ficción">Ciencia Ficción</option>
-                            <option value="Suspense">Suspense</option>
+                            <option value="Aventura">Aventura</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -74,14 +88,15 @@
                             <option value="Prime Video">Prime Video</option>
                             <option value="Disney+">Disney+</option>
                             <option value="HBO Max">HBO Max</option>
-                            <option value="Cine">Cine</option>
+                            <option value="Apple TV">Apple TV</option>
+                            <option value="Cine">Cine / Otro</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="grid-2">
                     <div class="input-group"><label>Minutos</label><input type="number" id="duracion"></div>
-                    <div class="input-group"><label>Nota (1-10)</label><input type="number" id="nota" step="0.1"></div>
+                    <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1" max="10"></div>
                 </div>
 
                 <div class="grid-2" style="margin-top:20px;">
@@ -92,7 +107,7 @@
         </section>
 
         <section id="seccion-listado" class="container" style="display:none;">
-            <input type="text" id="buscador" placeholder="🔍 Buscar por título, actor..." oninput="cargarPeliculas()">
+            <input type="text" id="buscador" placeholder="🔍 Buscar título o actor..." oninput="cargarPeliculas()">
             <div class="tabs">
                 <button id="tab-todas" class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
                 <button id="tab-vista" class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
@@ -114,7 +129,6 @@
         <section id="pantalla-estadisticas" class="container" style="display:none;">
             <h2>Estadísticas</h2>
             <div id="stats-content"></div>
-            <button onclick="mostrarSeccion('inicio')" class="btn-save" style="background:#333; color:white; margin-top:20px; width:100%;">Volver</button>
         </section>
     </main>
 
