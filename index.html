@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CinePro Ultra Manager</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <section id="pantalla-estadisticas" class="container" style="display:none;">
+        <h2>Estadísticas Pro</h2>
+        <div id="stats-content"></div>
+    
+        <div class="persona-card" style="margin-top:20px;">
+            <h3 style="text-align:center; margin-bottom:15px;">Tiempo por Género</h3>
+            <canvas id="graficoGeneros" style="max-width: 100%; height: 300px;"></canvas>
+        </div>
+    </section>
 </head>
 <body>
 
@@ -146,6 +157,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
