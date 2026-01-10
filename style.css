@@ -1,232 +1,58 @@
-:root { 
-    --main-red: #e50914; 
-    --bg-dark: #101010; 
-    --card-bg: #1a1a1a; 
+:root {
+    --main-red: #e50914;
+    --dark-bg: #141414;
+    --card-bg: #1f1f1f;
+    --text-white: #ffffff;
     --text-gray: #b3b3b3;
 }
 
-body { 
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-    background: var(--bg-dark); 
-    color: white; 
-    margin: 0; 
-    padding: 0; 
-    -webkit-tap-highlight-color: transparent;
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--dark-bg);
+    color: var(--text-white);
 }
 
-.container { max-width: 900px; margin: auto; padding: 20px; }
-
-header { 
-    display: flex; 
-    align-items: center; 
-    padding: 20px; /* Aumentamos el padding general */
-    background: rgba(0,0,0,0.9); 
-    position: sticky; 
-    top: 0; 
-    z-index: 100;
-    gap: 20px; /* Espacio fijo entre las barras y el título */
+/* CABECERA */
+header {
+    background-color: #000;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
-
-.menu-icon {
-    font-size: 30px;
-    cursor: pointer;
-    color: var(--main-red);
-    line-height: 1; /* Centra verticalmente el icono de barras */
-    padding-right: 10px; /* Margen extra a la derecha de las barras */
-}
-
-header h1 { 
-    margin: 0; 
-    padding: 0;
-    line-height: 1;
-    font-size: 24px;
-}
-
-h1 { color: var(--main-red); margin: 0; font-size: 26px; letter-spacing: -1px; }
 
 /* MENÚ LATERAL */
-.sidebar { height: 100%; width: 0; position: fixed; z-index: 2000; top: 0; left: 0; background-color: #050505; overflow-x: hidden; transition: 0.3s; padding-top: 60px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-.sidebar a { padding: 15px 30px; text-decoration: none; font-size: 18px; color: var(--text-gray); display: block; transition: 0.2s; }
-.sidebar a:hover { color: white; background: #1a1a1a; }
-.sidebar .closebtn { position: absolute; top: 10px; right: 25px; font-size: 36px; }
-
-/* FORMULARIO */
-.card-form { background: var(--card-bg); padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.fila { display: flex; gap: 12px; margin-bottom: 12px; }
-input, select, textarea { width: 100%; padding: 14px; margin: 6px 0; border-radius: 8px; border: 1px solid #333; background: #252525; color: white; font-size: 16px; transition: border 0.3s; }
-input:focus { border-color: var(--main-red); outline: none; }
-.upload-area { border: 2px dashed #444; padding: 30px; text-align: center; border-radius: 12px; cursor: pointer; margin: 15px 0; background: #202020; }
-.btn-principal { width: 100%; padding: 16px; background: var(--main-red); border: none; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 17px; margin-top: 15px; }
-
-/* CUADRÍCULA DE CARTELERA */
-.grid-cartelera { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
-    gap: 15px; 
-    margin-top: 20px; 
+.side-menu {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
 }
 
-.mini-card-peli { 
-    position: relative; 
-    border-radius: 12px; 
-    overflow: hidden; 
-    aspect-ratio: 2/3; 
-    background: #222; 
-    cursor: pointer; 
-    border: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.3s ease;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-}
-
-.mini-card-peli:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(229, 9, 20, 0.3); }
-.mini-card-peli img { width: 100%; height: 100%; object-fit: cover; }
-
-/* BADGES SOBRE IMAGEN */
-.nota-mini { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); color: #ffc107; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 900; border: 1px solid rgba(255,193,7,0.3); }
-.veces-mini { position: absolute; top: 38px; right: 8px; background: var(--main-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); }
-.plataforma-badge { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); color: white; font-size: 10px; font-weight: bold; text-align: center; padding: 5px 0; text-transform: uppercase; }
-
-/* COLORES PLATAFORMAS */
-.badge-netflix { border-bottom: 3px solid #e50914; }
-.badge-hbo { border-bottom: 3px solid #5822b4; }
-.badge-amazon { border-bottom: 3px solid #00a8e1; }
-.badge-disney { border-bottom: 3px solid #113ccf; }
-
-/* BIBLIOTECA */
-.grid-biblioteca { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
-.persona-card { background: var(--card-bg); padding: 20px; border-radius: 15px; text-align: center; transition: 0.3s; }
-.avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--main-red); margin-bottom: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
-.mini-galeria { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 15px; }
-
-/* MODAL ZOOM */
-.modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); overflow-y: auto; padding: 20px; box-sizing: border-box; }
-.modal-content { max-width: 500px; margin: 40px auto; position: relative; }
-.close { position: fixed; top: 20px; right: 30px; color: white; font-size: 45px; cursor: pointer; z-index: 3001; }
-#img-zoom { width: 100%; border-radius: 15px; box-shadow: 0 0 40px black; }
-
-/* CONTROLES ORDEN */
-.controles-listado { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-#ordenar-vistas { background: #333; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
-
-/* AJUSTE PARA ACTORES Y DIRECTORES DE 2 EN 2 */
-.grid-biblioteca { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; /* Fuerza 2 columnas iguales */
-    gap: 12px; 
-    padding: 5px;
-}
-
-.persona-card { 
-    background: var(--card-bg); 
-    padding: 15px 10px; /* Un poco más estrecho para que quepan bien */
-    border-radius: 15px; 
-    text-align: center; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.avatar { 
-    width: 80px; /* Reducido un poco para que no choque en pantallas pequeñas */
-    height: 80px; 
-    border-radius: 50%; 
-    object-fit: cover; 
-    border: 3px solid var(--main-red); 
-    margin-bottom: 8px; 
-}
-
-.persona-card h4 {
-    font-size: 14px;
-    margin: 5px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis; /* Corta nombres muy largos con ... */
-    width: 100%;
-}
-
-/* AJUSTE DE PORTADA PARA QUE NO SE DESCUADRE */
-.mini-card-peli { 
-    position: relative; 
-    border-radius: 12px; 
-    overflow: hidden; 
-    width: 100%; /* Ocupa el ancho de su celda */
-    aspect-ratio: 2 / 3; /* Proporción estándar de póster de cine */
-    background: #222; 
-    border: 1px solid rgba(255,255,255,0.05);
-}
-
-.mini-card-peli img { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; /* Recorta la imagen para que llene el hueco sin deformarse */
+.side-menu a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 18px;
+    color: var(--text-gray);
     display: block;
+    transition: 0.2s;
 }
 
-/* Asegura que todos los inputs midan exactamente lo mismo */
-input, select, textarea { 
-    width: 100%; 
-    padding: 14px; 
-    margin: 8px 0; /* Más espacio entre filas */
-    border-radius: 10px; 
-    border: 1px solid #333; 
-    background: #252525; 
-    color: white; 
-    font-size: 16px; 
-    box-sizing: border-box; /* FUNDAMENTAL: evita que el padding ensanche el cuadro */
-}
+.side-menu a:hover { color: white; background: #222; }
 
-/* Ajuste para las filas dobles (Año y Género) */
-.fila { 
-    display: flex; 
-    gap: 10px; 
-    margin-bottom: 5px; 
-    width: 100%;
-}
+/* DISEÑO DE LOS NUEVOS BOTONES */
+.menu-tools { padding: 0 15px; margin-top: 20px; }
 
-.fila input {
-    margin: 0; /* Quita el margen extra en las filas dobles para que no se descuadren */
-}
-
-/* Mejora el área de subida para que no se vea pegada */
-.upload-area {
-    margin: 15px 0;
-    padding: 25px;
-    box-sizing: border-box;
-}
-
-.container { 
-    max-width: 900px; 
-    margin: auto; 
-    padding: 25px 20px; /* Más espacio arriba */
-}
-
-.card-form { 
-    background: var(--card-bg); 
-    padding: 25px; 
-    border-radius: 15px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    margin-top: 10px;
-}
-
-.stat-box {
-    background: #252525;
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    border-bottom: 3px solid var(--main-red);
-}
-.stat-box h3 { margin: 0; font-size: 14px; color: #888; text-transform: uppercase; }
-.stat-box p { margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: white; }
-.stat-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    border-bottom: 1px solid #333;
-
-}
-
-/* Botón de Estadísticas (Destacado) */
 .btn-menu-especial {
     width: 100%;
     background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
@@ -234,41 +60,65 @@ input, select, textarea {
     color: white;
     padding: 15px;
     border-radius: 12px;
-    font-size: 16px;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     cursor: pointer;
-    transition: transform 0.2s, border-color 0.2s;
+    margin-bottom: 10px;
 }
 
-.btn-menu-especial:active {
-    transform: scale(0.98);
-    border-color: var(--main-red);
-}
+.grid-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-/* Botones de Guardar/Cargar (Pequeños) */
 .btn-menu-dato {
     background: #252525;
     border: 1px solid #333;
     color: #bbb;
-    padding: 12px 5px;
+    padding: 12px;
     border-radius: 10px;
-    font-size: 13px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 5px;
+    font-size: 12px;
     cursor: pointer;
 }
 
-.btn-menu-dato span {
-    font-size: 20px;
+.btn-menu-dato span { font-size: 18px; }
+
+/* CONTENEDORES Y TARJETAS */
+.container { padding: 20px; }
+
+.grid-peliculas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
 }
 
-.btn-menu-dato:active {
-    background: #333;
-    color: white;
+.card-peli {
+    background: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: center;
+    padding-bottom: 10px;
 }
+
+.img-peli {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.btn-save {
+    background-color: var(--main-red);
+    color: white;
+    border: none;
+    padding: 15px;
+    width: 100%;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+}
+
