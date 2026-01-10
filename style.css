@@ -22,10 +22,28 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: sticky;
+    position: fixed; /* Cambiado de sticky a fixed */
     top: 0;
-    z-index: 1000;
+    left: 0;
+    right: 0;
+    z-index: 1500; /* Prioridad alta para estar sobre las secciones */
     border-bottom: 1px solid #222;
+    height: 60px; /* Altura fija */
+    box-sizing: border-box;
+}
+
+/* IMPORTANTE: Añade esto para que el contenido no se meta debajo del menú */
+main {
+    margin-top: 70px; /* Deja espacio para la cabecera fija */
+}
+
+/* Asegúrate de que las secciones no oculten el menú */
+.container {
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
 }
 
 .menu-icon {
@@ -145,3 +163,4 @@ h2 { font-size: 24px; margin-bottom: 20px; border-left: 4px solid var(--main-red
 .grid-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .btn-menu-dato {
     background: #1a1a1a; border: 1px solid #33
+
