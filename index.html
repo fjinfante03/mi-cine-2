@@ -3,19 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Ultra Manager</title>
-    <link rel="stylesheet" href="style.css">
+    <title>CinePro Ultra</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <section id="pantalla-estadisticas" class="container" style="display:none;">
-        <h2>Estadísticas Pro</h2>
-        <div id="stats-content"></div>
-    
-        <div class="persona-card" style="margin-top:20px;">
-            <h3 style="text-align:center; margin-bottom:15px;">Tiempo por Género</h3>
-            <canvas id="graficoGeneros" style="max-width: 100%; height: 300px;"></canvas>
-        </div>
-    </section>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -32,8 +22,10 @@
     <nav id="side-menu" class="side-menu">
         <div class="menu-header"><h2>Menú</h2><span onclick="toggleMenu()">&times;</span></div>
         <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
-        <a href="#" onclick="irAListadoEspecial('vista')">🎬 Pelis Vistas</a> <a href="#" onclick="irAListadoEspecial('pendiente')">⏳ Pelis Pendientes</a> <a href="#" onclick="mostrarSeccion('listado')">📚 Toda la Biblioteca</a>
-        <hr style="border: 0; border-top: 1px solid #222; margin: 10px 0;">
+        <a href="#" onclick="irAListadoEspecial('vista')">🎬 Pelis Vistas</a>
+        <a href="#" onclick="irAListadoEspecial('pendiente')">⏳ Pelis Pendientes</a>
+        <a href="#" onclick="mostrarSeccion('listado')">📚 Toda la Biblioteca</a>
+        <hr>
         <a href="#" onclick="mostrarSeccion('seccion-directores')">👤 Directores</a>
         <a href="#" onclick="mostrarSeccion('seccion-actores')">🎭 Actores</a>
         <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
@@ -45,13 +37,13 @@
         <section id="seccion-inicio" class="container">
             <div class="welcome-card">
                 <h2>CinePro Ultra</h2>
-                <p>Tu base de datos personal con actores y fotos individuales.</p>
+                <p>Tu base de datos personal de cine y reparto.</p>
             </div>
             <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Nueva Película</button>
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
-            <h2 id="form-title">Datos de la Película</h2>
+            <h2>Datos de la Película</h2>
             <form id="form-pelicula">
                 <input type="hidden" id="edit-id">
                 <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
@@ -62,14 +54,9 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Reparto (Actores y sus fotos)</label>
-                    <div id="contenedor-actores" style="margin-top: 10px;">
-                </div>
-                <button type="button" onclick="agregarCampoActor()" class="btn-add-actor" style="margin-top: 5px;">
-                    ➕ Añadir actor
-                </button>
-                </div>
-                    <button type="button" onclick="agregarCampoActor()" class="btn-add-actor">➕ Añadir otro actor</button>
+                    <label>Reparto (Nombre y Foto)</label>
+                    <div id="contenedor-actores"></div>
+                    <button type="button" onclick="agregarCampoActor()" class="btn-add-actor">➕ Añadir actor</button>
                 </div>
 
                 <div class="input-group"><label>Portada Película (URL)</label><input type="text" id="fotoPortada"></div>
@@ -104,10 +91,9 @@
                     <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1" max="10"></div>
                     <div class="input-group"><label>Visto</label><input type="number" id="vecesVista" min="1" value="1"></div>
                 </div>
-
                 <div class="input-group"><label>Minutos</label><input type="number" id="duracion"></div>
 
-                <div class="grid-2" style="margin-top:20px;">
+                <div class="grid-2">
                     <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">🎬 VISTA</button>
                     <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">⏳ PENDIENTE</button>
                 </div>
@@ -115,7 +101,7 @@
         </section>
 
         <section id="seccion-listado" class="container" style="display:none;">
-            <input type="text" id="buscador" placeholder="🔍 Buscar por título o actor..." oninput="cargarPeliculas()">
+            <input type="text" id="buscador" placeholder="🔍 Buscar..." oninput="cargarPeliculas()">
             <div class="tabs">
                 <button id="tab-todas" class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
                 <button id="tab-vista" class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
@@ -124,26 +110,23 @@
             <div id="lista-peliculas" class="grid-peliculas"></div>
         </section>
 
-        <section id="seccion-directores" class="container" style="display:none;">
-            <h2>Directores</h2>
-            <div id="lista-directores"></div>
-        </section>
-
-        <section id="seccion-actores" class="container" style="display:none;">
-            <h2>Actores</h2>
-            <div id="lista-actores"></div>
-        </section>
+        <section id="seccion-directores" class="container" style="display:none;"><h2>Directores</h2><div id="lista-directores"></div></section>
+        <section id="seccion-actores" class="container" style="display:none;"><h2>Actores</h2><div id="lista-actores"></div></section>
 
         <section id="pantalla-estadisticas" class="container" style="display:none;">
-            <h2>Estadísticas</h2>
+            <h2>Estadísticas Pro</h2>
             <div id="stats-content"></div>
+            <div class="persona-card" style="margin-top:20px; min-height: 400px;">
+                <h3 style="text-align:center; margin-bottom:15px;">Tiempo por Género</h3>
+                <div style="position: relative; height:300px;"><canvas id="graficoGeneros"></canvas></div>
+            </div>
         </section>
 
         <section id="seccion-ajustes" class="container" style="display:none;">
             <h2>Configuración</h2>
             <div class="persona-card">
                 <h3>Copia de Seguridad</h3>
-                <div class="grid-2" style="margin-top:15px;">
+                <div class="grid-2">
                     <button onclick="exportarDatos()" class="btn-save" style="background:#444;">💾 GUARDAR</button>
                     <button onclick="document.getElementById('import-file').click()" class="btn-save" style="background:#444;">📂 CARGAR</button>
                 </div>
@@ -153,10 +136,10 @@
     </main>
 
     <div id="modal-img" class="modal" onclick="this.style.display='none'"><img id="img-ampliada"></div>
-
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
