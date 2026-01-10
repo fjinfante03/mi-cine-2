@@ -99,7 +99,14 @@
                     <input type="number" id="duracion" min="1" placeholder="Ej: 120">
                 </div>
 
-                <button type="submit" class="btn-save">Guardar Película</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save" style="background-color: #28a745; margin-top:0;">
+                        🎬 Vista
+                    </button>
+                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save" style="background-color: #ffc107; color: #000; margin-top:0;">
+                        ⏳ Pendiente
+                    </button>
+                </div>
             </form>
         </section>
 
@@ -121,4 +128,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
