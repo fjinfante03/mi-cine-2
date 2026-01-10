@@ -116,9 +116,11 @@
         <section id="pantalla-estadisticas" class="container" style="display:none;">
             <h2>Estadísticas Pro</h2>
             <div id="stats-content"></div>
-            <div class="persona-card" style="margin-top:20px; min-height: 400px;">
+            <div class="persona-card" style="margin-top:20px;">
                 <h3 style="text-align:center; margin-bottom:15px;">Tiempo por Género</h3>
-                <div style="position: relative; height:300px;"><canvas id="graficoGeneros"></canvas></div>
+                <div class="chart-container">
+                    <canvas id="graficoGeneros"></canvas>
+                </div>
             </div>
         </section>
 
@@ -139,8 +141,6 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
 
 
 
