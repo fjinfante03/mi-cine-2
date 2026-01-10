@@ -9,7 +9,7 @@ main { margin-top: 70px; }
 .side-menu hr { border: 0; border-top: 1px solid #222; margin: 10px 20px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.actor-card-form { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #333; }
+.actor-card-form { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
 .input-group input, .custom-select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
@@ -26,11 +26,10 @@ main { margin-top: 70px; }
 .tab-btn { flex: 1; padding: 10px; background: #222; color: #888; border: none; border-radius: 8px; }
 .tab-btn.active { background: var(--main-red); color: white; }
 .persona-card { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #222; }
+.chart-container { position: relative; margin: 0 auto; height: 300px; width: 300px; max-width: 100%; display: flex; justify-content: center; align-items: center; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; }
 .modal img { max-width: 90%; max-height: 80%; }
-#graficoGeneros {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-}
-
+.persona-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.persona-img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--main-red); }
+.persona-pelis { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
+.mini-portada { width: 65px; height: 95px; border-radius: 6px; flex-shrink: 0; object-fit: cover; }
