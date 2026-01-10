@@ -42,13 +42,22 @@ function agregarCampoActor(nombre = "", foto = "") {
 
 function validarYGuardar(estado) {
     const id = document.getElementById('edit-id').value;
-    const filasActores = document.querySelectorAll('.actor-input-row');
-    let reparto = [];
-    filasActores.forEach(f => {
-        const n = f.querySelector('.nombre-actor').value;
-        const ft = f.querySelector('.foto-actor').value;
-        if(n) reparto.push({ nombre: n, foto: ft });
-    });
+    // ... (reparto queda igual) ...
+    const peli = {
+        titulo: document.getElementById('titulo').value,
+        nombreDirector: document.getElementById('nombreDirector').value,
+        fotoDirector: document.getElementById('fotoDirector').value,
+        reparto: reparto,
+        fotoPortada: document.getElementById('fotoPortada').value,
+        nota: parseFloat(document.getElementById('nota').value) || 0,
+        fechaVista: document.getElementById('fechaVista').value, // NUEVO
+        duracion: parseInt(document.getElementById('duracion').value) || 0,
+        genero: document.getElementById('genero').value,
+        plataforma: document.getElementById('plataforma').value,
+        estado: estado
+    };
+    // ... (el resto del guardado igual) ...
+}
 
     const peli = {
         titulo: document.getElementById('titulo').value,
@@ -87,12 +96,21 @@ function cargarPeliculas() {
             const matchesBusqueda = p.titulo.toLowerCase().includes(busqueda);
             return matchesTab && matchesBusqueda;
         }).forEach(p => {
+            // Lógica para mostrar nota y fecha si está vista
+            const infoExtra = p.estado === 'vista' 
+                ? `<div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-gray); margin-top:5px;">
+                    <span>⭐ ${p.nota}</span>
+                    <span>📅 ${p.fechaVista ? new Date(p.fechaVista).toLocaleDateString() : 'S/F'}</span>
+                   </div>` 
+                : '';
+
             const div = document.createElement('div');
             div.className = 'card-peli';
             div.innerHTML = `
                 <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
-                <div style="padding:12px;">
-                    <h4 style="margin:0; font-size:14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.titulo}</h4>
+                <div style="padding:10px;">
+                    <h4 style="margin:0; font-size:13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.titulo}</h4>
+                    ${infoExtra}
                     <div style="display:flex; justify-content:space-between; margin-top:10px;">
                         <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
                         <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
@@ -168,6 +186,7 @@ function editar(id) {
         document.getElementById('nombreDirector').value = p.nombreDirector;
         document.getElementById('fotoDirector').value = p.fotoDirector;
         document.getElementById('fotoPortada').value = p.fotoPortada;
+        document.getElementById('fechaVista').value = p.fechaVista || "";
         document.getElementById('nota').value = p.nota;
         document.getElementById('duracion').value = p.duracion;
         document.getElementById('genero').value = p.genero;
@@ -199,3 +218,4 @@ function importarDatos(input) {
     };
     reader.readAsText(input.files[0]);
 }
+
