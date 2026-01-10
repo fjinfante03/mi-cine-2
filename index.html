@@ -21,11 +21,13 @@
     <nav id="side-menu" class="side-menu">
         <div class="menu-header"><h2>Menú</h2><span onclick="toggleMenu()">&times;</span></div>
         <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
-        <a href="#" onclick="mostrarSeccion('listado')">🎬 Biblioteca</a>
-        <a href="#" onclick="mostrarSeccion('seccion-personas')">👥 Actores y Directores</a>
+        <a href="#" onclick="mostrarSeccion('listado')">🎬 Mi Biblioteca</a>
+        <a href="#" onclick="mostrarSeccion('seccion-directores')">🎬 Directores</a>
+        <a href="#" onclick="mostrarSeccion('seccion-actores')">🎭 Actores</a>
         <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
+
         <div class="menu-tools">
-            <button onclick="abrirEstadisticas()" class="btn-menu-especial">📊 Estadísticas</button>
+            <button onclick="abrirEstadisticas()" class="btn-menu-especial">📊 Estadísticas Pro</button>
             <div class="grid-tools">
                 <button onclick="exportarDatos()" class="btn-menu-dato">💾 GUARDAR</button>
                 <button onclick="document.getElementById('import-file').click()" class="btn-menu-dato">📂 CARGAR</button>
@@ -35,6 +37,14 @@
     </nav>
 
     <main>
+        <section id="seccion-inicio" class="container">
+            <div class="welcome-card">
+                <h2>¡Bienvenido!</h2>
+                <p>Gestiona tus películas, actores y directores.</p>
+            </div>
+            <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Nueva Película</button>
+        </section>
+
         <section id="nueva-peli" class="container" style="display:none;">
             <h2 id="form-title">Nueva Película</h2>
             <form id="form-pelicula">
@@ -42,33 +52,39 @@
                 <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
                 <div class="input-group"><label>Director (Nombre)</label><input type="text" id="nombreDirector"></div>
                 <div class="input-group"><label>Foto Director (URL)</label><input type="text" id="fotoDirector"></div>
-                <div class="input-group"><label>Actores (Separados por coma)</label><input type="text" id="actores" placeholder="Ej: Brad Pitt, Margot Robbie"></div>
-                <div class="input-group"><label>Foto Actor Principal (URL)</label><input type="text" id="fotoActor"></div>
-                <div class="input-group">
-                    <label>Género</label>
-                    <select id="genero" class="custom-select">
-                        <option value="Acción">Acción</option>
-                        <option value="Drama">Drama</option>
-                        <option value="Comedia">Comedia</option>
-                        <option value="Terror">Terror</option>
-                        <option value="Ciencia Ficción">Ciencia Ficción</option>
-                    </select>
+                <div class="input-group"><label>Actores (Separados por coma)</label><input type="text" id="actores" placeholder="Brad Pitt, Tom Cruise..."></div>
+                <div class="input-group"><label>Foto Principal (Actor/Portada URL)</label><input type="text" id="fotoActor"></div>
+                
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Género</label>
+                        <select id="genero" class="custom-select">
+                            <option value="Acción">Acción</option>
+                            <option value="Drama">Drama</option>
+                            <option value="Comedia">Comedia</option>
+                            <option value="Terror">Terror</option>
+                            <option value="Ciencia Ficción">Ciencia Ficción</option>
+                            <option value="Suspense">Suspense</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Plataforma</label>
+                        <select id="plataforma" class="custom-select">
+                            <option value="Netflix">Netflix</option>
+                            <option value="Prime Video">Prime Video</option>
+                            <option value="Disney+">Disney+</option>
+                            <option value="HBO Max">HBO Max</option>
+                            <option value="Cine">Cine</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Plataforma</label>
-                    <select id="plataforma" class="custom-select">
-                        <option value="Netflix">Netflix</option>
-                        <option value="Prime Video">Prime Video</option>
-                        <option value="Disney+">Disney+</option>
-                        <option value="HBO Max">HBO Max</option>
-                        <option value="Cine/Otro">Cine / Otro</option>
-                    </select>
-                </div>
+
                 <div class="grid-2">
                     <div class="input-group"><label>Minutos</label><input type="number" id="duracion"></div>
-                    <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1"></div>
+                    <div class="input-group"><label>Nota (1-10)</label><input type="number" id="nota" step="0.1"></div>
                 </div>
-                <div class="grid-2">
+
+                <div class="grid-2" style="margin-top:20px;">
                     <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">🎬 VISTA</button>
                     <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">⏳ PENDIENTE</button>
                 </div>
@@ -76,31 +92,34 @@
         </section>
 
         <section id="seccion-listado" class="container" style="display:none;">
-            <input type="text" id="buscador" placeholder="🔍 Buscar por título, actor..." oninput="filtrarPeliculas()">
+            <input type="text" id="buscador" placeholder="🔍 Buscar por título, actor..." oninput="cargarPeliculas()">
             <div class="tabs">
-                <button class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
-                <button class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
-                <button class="tab-btn" onclick="cambiarTab('pendiente')">Pendientes</button>
+                <button id="tab-todas" class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
+                <button id="tab-vista" class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
+                <button id="tab-pendiente" class="tab-btn" onclick="cambiarTab('pendiente')">Pendientes</button>
             </div>
             <div id="lista-peliculas" class="grid-peliculas"></div>
         </section>
 
-        <section id="seccion-personas" class="container" style="display:none;">
-            <h2>Actores y Directores</h2>
-            <div id="lista-personas"></div>
+        <section id="seccion-directores" class="container" style="display:none;">
+            <h2>Directores</h2>
+            <div id="lista-directores"></div>
+        </section>
+
+        <section id="seccion-actores" class="container" style="display:none;">
+            <h2>Actores</h2>
+            <div id="lista-actores"></div>
         </section>
 
         <section id="pantalla-estadisticas" class="container" style="display:none;">
-            <h2>Estadísticas Pro</h2>
+            <h2>Estadísticas</h2>
             <div id="stats-content"></div>
+            <button onclick="mostrarSeccion('inicio')" class="btn-save" style="background:#333; color:white; margin-top:20px; width:100%;">Volver</button>
         </section>
     </main>
 
-    <div id="modal-img" class="modal" onclick="this.style.display='none'">
-        <img id="img-ampliada">
-    </div>
+    <div id="modal-img" class="modal" onclick="this.style.display='none'"><img id="img-ampliada"></div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
