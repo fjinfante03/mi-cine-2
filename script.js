@@ -32,13 +32,15 @@ function mostrarSeccion(id) {
 document.getElementById('form-pelicula').onsubmit = (e) => {
     e.preventDefault();
     
+// Dentro de document.getElementById('form-pelicula').onsubmit
     const nuevaPeli = {
         titulo: document.getElementById('titulo').value,
         nombreDirector: document.getElementById('nombreDirector').value,
-        fotoDirector: document.getElementById('fotoDirector').value, // URL de texto
+        fotoDirector: document.getElementById('fotoDirector').value,
         nombreActor: document.getElementById('nombreActor').value,
-        fotoActor: document.getElementById('fotoActor').value, // URL de texto
+        fotoActor: document.getElementById('fotoActor').value,
         nota: parseFloat(document.getElementById('nota').value),
+        duracion: parseInt(document.getElementById('duracion').value) || 0, // <-- Añade esta línea
         fecha: new Date().toLocaleDateString()
     };
 
@@ -101,14 +103,33 @@ function abrirEstadisticas() {
     mostrarSeccion('pantalla-estadisticas');
     db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
         const pelis = e.target.result;
+        
+        // Cálculo de nota media
         const media = pelis.reduce((acc, p) => acc + p.nota, 0) / (pelis.length || 1);
+        
+        // Cálculo de tiempo total
+        const minutosTotales = pelis.reduce((acc, p) => acc + (p.duracion || 0), 0);
+        const horas = Math.floor(minutosTotales / 60);
+        const minutosRestantes = minutosTotales % 60;
+
         document.getElementById('stats-content').innerHTML = `
-            <div style="background:#222; padding:20px; border-radius:10px; text-align:center;">
-                <h1 style="font-size:40px; margin:0;">${pelis.length}</h1>
-                <p>Películas en total</p>
-                <h1 style="font-size:40px; margin:0; color:gold;">${media.toFixed(1)}</h1>
-                <p>Nota Media</p>
+            <div style="display: grid; gap: 15px;">
+                <div style="background:#222; padding:20px; border-radius:12px; text-align:center;">
+                    <h1 style="font-size:40px; margin:0; color:var(--main-red);">${pelis.length}</h1>
+                    <p style="color:var(--text-gray); margin:5px 0;">Películas vistas</p>
+                </div>
+
+                <div style="background:#222; padding:20px; border-radius:12px; text-align:center;">
+                    <h1 style="font-size:35px; margin:0; color:white;">${horas}h <span style="font-size:20px;">${minutosRestantes}min</span></h1>
+                    <p style="color:var(--text-gray); margin:5px 0;">Tiempo total de cine</p>
+                </div>
+
+                <div style="background:#222; padding:20px; border-radius:12px; text-align:center;">
+                    <h1 style="font-size:40px; margin:0; color:gold;">★ ${media.toFixed(1)}</h1>
+                    <p style="color:var(--text-gray); margin:5px 0;">Nota Media</p>
+                </div>
             </div>
         `;
     };
 }
+
