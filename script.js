@@ -150,22 +150,63 @@ function generarPersonas(tipo) {
     };
 }
 
+let miGrafico; // Variable global para destruir el gráfico viejo antes de crear uno nuevo
+
 function abrirEstadisticas() {
     document.getElementById('pantalla-estadisticas').style.display = 'block';
+    
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        const v = e.target.result.filter(x => x.estado === 'vista');
-        const mins = v.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
-        const nota = v.reduce((a, b) => a + (b.nota || 0), 0) / (v.length || 1);
+        const pelisVistas = e.target.result.filter(x => x.estado === 'vista');
+        
+        // 1. Cálculos generales
+        const totalMins = pelisVistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
+        const notaMedia = pelisVistas.reduce((a, b) => a + (b.nota || 0), 0) / (pelisVistas.length || 1);
+
+        // 2. Cálculos por Género (Conteo y Tiempo)
+        let statsGeneros = {};
+        pelisVistas.forEach(p => {
+            if (!statsGeneros[p.genero]) statsGeneros[p.genero] = { count: 0, time: 0 };
+            statsGeneros[p.genero].count++;
+            statsGeneros[p.genero].time += (p.duracion || 0) * (p.vecesVista || 1);
+        });
+
+        // 3. Mostrar texto de estadísticas
+        let htmlGeneros = '<div style="margin-top:15px; text-align:left; font-size:13px;">';
+        for(let g in statsGeneros) {
+            htmlGeneros += `<p>• <b>${g}:</b> ${statsGeneros[g].count} pelis (${Math.floor(statsGeneros[g].time/60)}h)</p>`;
+        }
+        htmlGeneros += '</div>';
+
         document.getElementById('stats-content').innerHTML = `
             <div class="persona-card" style="text-align:center;">
-                <h1 style="color:var(--main-red); font-size:40px; margin:0;">${v.length}</h1>
+                <h1 style="color:var(--main-red); font-size:40px; margin:0;">${pelisVistas.length}</h1>
                 <p>Películas Vistas</p>
-                <h2>${Math.floor(mins/60)}h ${mins%60}min</h2>
-                <p>Tiempo total invertido</p>
-            </div>
-            <div class="persona-card">
-                <p>⭐ Nota Media: <b>${nota.toFixed(1)}</b></p>
+                <h2>${Math.floor(totalMins/60)}h ${totalMins%60}min</h2>
+                <p>Tiempo total</p>
+                <p>⭐ Nota Media: <b>${notaMedia.toFixed(1)}</b></p>
+                ${htmlGeneros}
             </div>`;
+
+        // 4. Crear el Gráfico Circular
+        const ctx = document.getElementById('graficoGeneros').getContext('2d');
+        if (miGrafico) miGrafico.destroy(); // Limpiar gráfico anterior
+        
+        miGrafico = new Chart(ctx, {
+            type: 'doughnut', // Gráfico circular tipo "donante" (más moderno)
+            data: {
+                labels: Object.keys(statsGeneros),
+                datasets: [{
+                    data: Object.values(statsGeneros).map(g => g.time),
+                    backgroundColor: ['#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { labels: { color: 'white' } }
+                }
+            }
+        });
     };
 }
 
@@ -223,6 +264,7 @@ function irAListadoEspecial(estado) {
     // 4. Forzamos la recarga de las películas con el nuevo filtro
     cargarPeliculas();
 }
+
 
 
 
