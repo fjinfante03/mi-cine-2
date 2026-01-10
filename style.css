@@ -2,27 +2,45 @@
     --main-red: #e50914;
     --dark-bg: #141414;
     --card-bg: #1f1f1f;
+    --input-bg: #2b2b2b;
     --text-white: #ffffff;
     --text-gray: #b3b3b3;
 }
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--dark-bg);
     color: var(--text-white);
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* CABECERA */
+/* CABECERA CORREGIDA */
 header {
     background-color: #000;
-    padding: 15px;
+    padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
     z-index: 1000;
+    border-bottom: 1px solid #222;
+}
+
+.menu-icon {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 2001;
+}
+
+.bar {
+    width: 25px;
+    height: 3px;
+    background-color: var(--text-white); /* Asegura que se vea la barra */
+    border-radius: 2px;
 }
 
 /* MENÚ LATERAL */
@@ -30,95 +48,100 @@ header {
     height: 100%;
     width: 0;
     position: fixed;
-    z-index: 2000;
+    z-index: 2005;
     top: 0;
     left: 0;
-    background-color: #111;
+    background-color: #000;
     overflow-x: hidden;
-    transition: 0.3s;
-    padding-top: 60px;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+}
+
+.menu-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #222;
 }
 
 .side-menu a {
-    padding: 15px 25px;
+    padding: 18px 25px;
     text-decoration: none;
-    font-size: 18px;
+    font-size: 16px;
     color: var(--text-gray);
     display: block;
-    transition: 0.2s;
+    border-bottom: 1px solid #111;
 }
 
-.side-menu a:hover { color: white; background: #222; }
+.side-menu a:active { background: #222; color: var(--main-red); }
 
-/* DISEÑO DE LOS NUEVOS BOTONES */
-.menu-tools { padding: 0 15px; margin-top: 20px; }
+/* FORMULARIO ESTILIZADO */
+.container { padding: 20px; max-width: 500px; margin: 0 auto; }
 
-.btn-menu-especial {
+h2 { font-size: 24px; margin-bottom: 20px; border-left: 4px solid var(--main-red); padding-left: 10px; }
+
+.input-group { margin-bottom: 18px; }
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.input-group input {
     width: 100%;
-    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-    border: 1px solid #444;
+    padding: 14px;
+    background-color: var(--input-bg);
+    border: 1px solid #333;
+    border-radius: 10px;
     color: white;
-    padding: 15px;
+    box-sizing: border-box;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus { border-color: var(--main-red); }
+
+/* BOTONES DEL FORMULARIO */
+.btn-save {
+    border: none;
+    padding: 16px;
     border-radius: 12px;
     font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    margin-bottom: 10px;
+    gap: 8px;
 }
 
-.grid-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-.btn-menu-dato {
-    background: #252525;
-    border: 1px solid #333;
-    color: #bbb;
-    padding: 12px;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.btn-menu-dato span { font-size: 18px; }
-
-/* CONTENEDORES Y TARJETAS */
-.container { padding: 20px; }
-
+/* LISTADO DE PELÍCULAS */
 .grid-peliculas {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 15px;
 }
 
 .card-peli {
     background: var(--card-bg);
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    text-align: center;
-    padding-bottom: 10px;
+    transition: transform 0.2s;
 }
 
-.img-peli {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-}
+.img-peli { width: 100%; height: 210px; object-fit: cover; }
 
-.btn-save {
-    background-color: var(--main-red);
-    color: white;
-    border: none;
-    padding: 15px;
-    width: 100%;
-    border-radius: 5px;
-    font-weight: bold;
-    margin-top: 20px;
+/* HERRAMIENTAS MENÚ */
+.menu-tools { padding: 10px 20px; }
+.btn-menu-especial {
+    width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #333;
+    background: #222; color: white; margin: 10px 0; font-weight: bold;
 }
-}
-
+.grid-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-menu-dato {
+    background: #1a1a1a; border: 1px solid #33
