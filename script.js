@@ -1,6 +1,6 @@
 let db;
 let currentTab = 'todas';
-const request = indexedDB.open("CineTrackDB", 4);
+const request = indexedDB.open("CineTrackDB", 5);
 
 request.onupgradeneeded = (e) => {
     db = e.target.result;
@@ -18,12 +18,16 @@ function toggleMenu() {
 
 function mostrarSeccion(id) {
     document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
+    
     if (id === 'seccion-directores') generarPersonas('director');
     else if (id === 'seccion-actores') generarPersonas('actor');
+    else if (id === 'pantalla-estadisticas') abrirEstadisticas();
     else {
         const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
-        document.getElementById(target).style.display = 'block';
+        const section = document.getElementById(target);
+        if (section) section.style.display = 'block';
     }
+    
     if (id === 'listado') cargarPeliculas();
     toggleMenu();
 }
@@ -31,7 +35,7 @@ function mostrarSeccion(id) {
 function agregarCampoActor(nombre = "", foto = "") {
     const div = document.createElement('div');
     div.className = "actor-input-row grid-2";
-    div.innerHTML = `<input type="text" placeholder="Nombre" class="nombre-actor" value="${nombre}">
+    div.innerHTML = `<input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}">
                      <input type="text" placeholder="URL Foto" class="foto-actor" value="${foto}">`;
     document.getElementById('contenedor-actores').appendChild(div);
 }
@@ -87,11 +91,11 @@ function cargarPeliculas() {
             div.className = 'card-peli';
             div.innerHTML = `
                 <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
-                <div style="padding:10px;">
-                    <h4 style="margin:0; font-size:13px;">${p.titulo}</h4>
-                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:16px;">✏️</button>
-                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:16px;">🗑️</button>
+                <div style="padding:12px;">
+                    <h4 style="margin:0; font-size:14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.titulo}</h4>
+                    <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
+                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
                     </div>
                 </div>`;
             lista.appendChild(div);
@@ -132,26 +136,26 @@ function generarPersonas(tipo) {
 }
 
 function abrirEstadisticas() {
-    mostrarSeccion('pantalla-estadisticas');
+    document.getElementById('pantalla-estadisticas').style.display = 'block';
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         const p = e.target.result;
         const vistas = p.filter(x => x.estado === 'vista');
         const totalMins = vistas.reduce((a, b) => a + (b.duracion || 0), 0);
         const media = vistas.reduce((a, b) => a + (b.nota || 0), 0) / (vistas.length || 1);
-        const plat = p.reduce((acc, x) => { acc[x.plataforma] = (acc[x.plataforma] || 0) + 1; return acc; }, {});
-        const gen = p.reduce((acc, x) => { acc[x.genero] = (acc[x.genero] || 0) + 1; return acc; }, {});
+        const plat = vistas.reduce((acc, x) => { acc[x.plataforma] = (acc[x.plataforma] || 0) + 1; return acc; }, {});
+        const gen = vistas.reduce((acc, x) => { acc[x.genero] = (acc[x.genero] || 0) + 1; return acc; }, {});
 
         document.getElementById('stats-content').innerHTML = `
-            <div class="persona-card" style="text-align:center;">
+            <div class="persona-card" style="text-align:center; background: linear-gradient(180deg, #1a1a1a, #000);">
                 <h1 style="color:var(--main-red); margin:0; font-size:45px;">${vistas.length}</h1>
-                <p>Películas Vistas</p>
-                <h2>${Math.floor(totalMins/60)}h ${totalMins%60}min</h2>
-                <p>Tiempo de Cine</p>
+                <p style="color:#888;">Películas Vistas</p>
+                <h2 style="margin:10px 0 0 0;">${Math.floor(totalMins/60)}h ${totalMins%60}min</h2>
+                <p style="color:#888;">Tiempo en Pantalla</p>
             </div>
             <div class="persona-card">
-                <p>⭐ Nota Media: <b>${media.toFixed(1)}</b></p>
-                <p>📺 Plataforma Top: <b>${Object.keys(plat).sort((a,b) => plat[b]-plat[a])[0] || '-'}</b></p>
-                <p>🎭 Género Top: <b>${Object.keys(gen).sort((a,b) => gen[b]-gen[a])[0] || '-'}</b></p>
+                <p>⭐ Nota Media: <b style="color:gold;">${media.toFixed(1)}</b></p>
+                <p>📺 Plataforma Favorita: <b>${Object.keys(plat).sort((a,b) => plat[b]-plat[a])[0] || 'N/A'}</b></p>
+                <p>🎭 Género Favorito: <b>${Object.keys(gen).sort((a,b) => gen[b]-gen[a])[0] || 'N/A'}</b></p>
             </div>`;
     };
 }
@@ -176,19 +180,22 @@ function editar(id) {
 
 function eliminar(id) { if(confirm("¿Eliminar película?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => location.reload(); }
 function ampliar(src) { if(src) { document.getElementById('modal-img').style.display='flex'; document.getElementById('img-ampliada').src=src; } }
+
 function exportarDatos() {
     db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
         const blob = new Blob([JSON.stringify(e.target.result)], { type: "application/json" });
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `cine_backup.json`; a.click();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); 
+        a.download = `CinePro_Backup_${new Date().toLocaleDateString()}.json`; a.click();
     };
 }
+
 function importarDatos(input) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const pelis = JSON.parse(e.target.result);
         const tx = db.transaction("peliculas", "readwrite");
         pelis.forEach(p => tx.objectStore("peliculas").put(p));
-        tx.oncomplete = () => location.reload();
+        tx.oncomplete = () => { alert("¡Importación completada!"); location.reload(); };
     };
     reader.readAsText(input.files[0]);
 }
