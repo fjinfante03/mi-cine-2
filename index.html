@@ -2,10 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Videoteca Personal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi Cine</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
@@ -15,118 +14,84 @@
             <div class="bar"></div>
             <div class="bar"></div>
         </div>
-        <h1>Mi Cine</h1>
-        <div class="search-icon">🔍</div>
-    </header>
+        <h1 style="font-size: 20px; margin: 0; color: var(--main-red);">MI CINE</h1>
+        <div style="width: 25px;"></div> </header>
 
     <nav id="side-menu" class="side-menu">
         <div class="menu-header">
-            <h2>Opciones</h2>
-            <span class="close-btn" onclick="toggleMenu()">&times;</span>
+            <h2 style="margin:0; border:none; font-size: 18px;">Menú</h2>
+            <span onclick="toggleMenu()" style="font-size: 30px; cursor:pointer;">&times;</span>
         </div>
         
         <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
-        <a href="#" onclick="mostrarSeccion('listado')">🎬 Ver Biblioteca</a>
+        <a href="#" onclick="mostrarSeccion('listado')">🎬 Mi Biblioteca</a>
         <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
 
         <div class="menu-tools">
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-            
-            <button onclick="abrirEstadisticas()" class="btn-menu-especial">
-                <span>📊</span> Mis Estadísticas
-            </button>
-
+            <button onclick="abrirEstadisticas()" class="btn-menu-especial">📊 Estadísticas</button>
             <div class="grid-tools">
-                <button onclick="exportarDatos()" class="btn-menu-dato">
-                    <span>💾</span> Guardar
-                </button>
-                
-                <button onclick="document.getElementById('import-file').click()" class="btn-menu-dato">
-                    <span>📂</span> Cargar
-                </button>
+                <button onclick="exportarDatos()" class="btn-menu-dato">💾 GUARDAR</button>
+                <button onclick="document.getElementById('import-file').click()" class="btn-menu-dato">📂 CARGAR</button>
             </div>
-            
             <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
         </div>
     </nav>
 
-    <main id="main-content">
-        
+    <main>
         <section id="seccion-inicio" class="container">
-            <h2>Bienvenido</h2>
-            <p>Gestiona tu colección de cine personal de forma fácil.</p>
-            <div class="hero-card" onclick="mostrarSeccion('nueva-peli')">
-                <h3>Añadir nueva película</h3>
-                <p>Haz clic aquí para empezar</p>
+            <div style="background: linear-gradient(rgba(0,0,0,0.6), #141414), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=500'); height: 200px; border-radius: 15px; display: flex; align-items: center; justify-content: center; text-align: center; margin-bottom: 20px; background-size: cover;">
+                <h2 style="border:none;">¡Bienvenido de nuevo!</h2>
             </div>
+            <button onclick="mostrarSeccion('nueva-peli')" class="btn-save" style="width:100%; background: var(--main-red); color: white;">Añadir nueva película</button>
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
             <h2>Nueva Película</h2>
             <form id="form-pelicula">
                 <div class="input-group">
-                    <label>Título:</label>
-                    <input type="text" id="titulo" required placeholder="Ej: El Padrino">
+                    <label>Título de la película</label>
+                    <input type="text" id="titulo" placeholder="Ej: Pulp Fiction" required>
                 </div>
 
                 <div class="input-group">
-                    <label>Director (Nombre):</label>
-                    <input type="text" id="nombreDirector" placeholder="Nombre del director">
+                    <label>Director (URL de la foto)</label>
+                    <input type="text" id="fotoDirector" placeholder="Pega el enlace de la imagen...">
                 </div>
 
                 <div class="input-group">
-                    <label>Foto Director (URL de Google):</label>
-                    <input type="text" id="fotoDirector" placeholder="https://enlace-de-la-foto.jpg">
+                    <label>Actor/Actriz (URL de la foto)</label>
+                    <input type="text" id="fotoActor" placeholder="Pega el enlace de la imagen...">
                 </div>
 
                 <div class="input-group">
-                    <label>Actor Principal (Nombre):</label>
-                    <input type="text" id="nombreActor" placeholder="Nombre del actor">
+                    <label>Duración (Minutos)</label>
+                    <input type="number" id="duracion" placeholder="Ej: 120">
                 </div>
 
                 <div class="input-group">
-                    <label>Foto Actor (URL de Google):</label>
-                    <input type="text" id="fotoActor" placeholder="https://enlace-de-la-foto.jpg">
+                    <label>Tu Nota (1 al 10)</label>
+                    <input type="number" id="nota" step="0.1" min="0" max="10" placeholder="Ej: 8.5">
                 </div>
 
-                <div class="input-group">
-                    <label>Nota Personal (1-10):</label>
-                    <input type="number" id="nota" min="1" max="10" step="0.1">
-                </div>
-
-                <div class="input-group">
-                    <label>Duración (en minutos):</label>
-                    <input type="number" id="duracion" min="1" placeholder="Ej: 120">
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
-                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save" style="background-color: #28a745; margin-top:0;">
-                        🎬 Vista
-                    </button>
-                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save" style="background-color: #ffc107; color: #000; margin-top:0;">
-                        ⏳ Pendiente
-                    </button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
+                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save" style="background: #28a745; color: white;">🎬 VISTA</button>
+                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save" style="background: #ffc107; color: black;">⏳ PENDIENTE</button>
                 </div>
             </form>
         </section>
 
         <section id="seccion-listado" class="container" style="display:none;">
             <h2>Mi Biblioteca</h2>
-            <div id="lista-peliculas" class="grid-peliculas">
-                </div>
+            <div id="lista-peliculas" class="grid-peliculas"></div>
         </section>
 
         <section id="pantalla-estadisticas" class="container" style="display:none;">
             <h2>Estadísticas</h2>
-            <div id="stats-content">
-                </div>
-            <button onclick="mostrarSeccion('inicio')" class="btn-back">Volver</button>
+            <div id="stats-content"></div>
+            <button onclick="mostrarSeccion('inicio')" class="btn-save" style="width:100%; margin-top:20px; background:#333; color:white;">Volver</button>
         </section>
-
     </main>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-
