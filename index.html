@@ -25,22 +25,15 @@
         <a href="#" onclick="mostrarSeccion('seccion-directores')">🎬 Directores</a>
         <a href="#" onclick="mostrarSeccion('seccion-actores')">🎭 Actores</a>
         <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
-
-        <div class="menu-tools">
-            <button onclick="abrirEstadisticas()" class="btn-menu-especial">📊 Estadísticas Pro</button>
-            <div class="grid-tools">
-                <button onclick="exportarDatos()" class="btn-menu-dato">💾 GUARDAR</button>
-                <button onclick="document.getElementById('import-file').click()" class="btn-menu-dato">📂 CARGAR</button>
-            </div>
-            <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
-        </div>
+        <a href="#" onclick="mostrarSeccion('pantalla-estadisticas')">📊 Estadísticas</a>
+        <a href="#" onclick="mostrarSeccion('seccion-ajustes')">⚙️ Ajustes y Copia</a>
     </nav>
 
     <main>
         <section id="seccion-inicio" class="container">
             <div class="welcome-card">
                 <h2>CinePro Ultra</h2>
-                <p>Tu base de datos personal con actores y directores.</p>
+                <p>Tu base de datos personal de cine.</p>
             </div>
             <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Añadir Película</button>
         </section>
@@ -74,12 +67,13 @@
                         <label>Género</label>
                         <select id="genero" class="custom-select">
                             <option value="Acción">Acción</option>
+                            <option value="Amor">Amor ❤️</option>
                             <option value="Drama">Drama</option>
                             <option value="Comedia">Comedia</option>
                             <option value="Terror">Terror</option>
                             <option value="Ciencia Ficción">Ciencia Ficción</option>
                             <option value="Aventura">Aventura</option>
-                            <option value="Amor">Amor</option>
+                            <option value="Suspense">Suspense</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -119,17 +113,30 @@
 
         <section id="seccion-directores" class="container" style="display:none;">
             <h2>Directores</h2>
-            <div id="lista-directores"></div>
+            <div id="lista-directores" class="grid-personas"></div>
         </section>
 
         <section id="seccion-actores" class="container" style="display:none;">
             <h2>Actores</h2>
-            <div id="lista-actores"></div>
+            <div id="lista-actores" class="grid-personas"></div>
         </section>
 
         <section id="pantalla-estadisticas" class="container" style="display:none;">
             <h2>Estadísticas</h2>
             <div id="stats-content"></div>
+        </section>
+
+        <section id="seccion-ajustes" class="container" style="display:none;">
+            <h2>Configuración</h2>
+            <div class="persona-card">
+                <h3>Copia de Seguridad</h3>
+                <p style="font-size: 13px; color: #888;">Guarda tus datos en un archivo o recupéralos.</p>
+                <div class="grid-2" style="margin-top: 15px;">
+                    <button onclick="exportarDatos()" class="btn-save" style="background: #444; color: white;">💾 GUARDAR</button>
+                    <button onclick="document.getElementById('import-file').click()" class="btn-save" style="background: #444; color: white;">📂 CARGAR</button>
+                </div>
+                <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
+            </div>
         </section>
     </main>
 
@@ -138,4 +145,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
