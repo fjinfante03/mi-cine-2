@@ -77,3 +77,5 @@ main { margin-top: 70px; }
 .modal img { max-width: 90%; max-height: 80%; border-radius: 10px; }
 
 .welcome-card { background: linear-gradient(45deg, #222, #000); padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid #333;}
+
+.card-peli span { font-weight: bold; }
