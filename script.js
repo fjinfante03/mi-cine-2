@@ -355,16 +355,25 @@ function abrirEstadisticas() {
     }
 }
 
+// Esta versión intenta capturar todo el contenido
 function exportarDatos() {
     const tx = db.transaction("peliculas", "readonly");
-    tx.objectStore("peliculas").getAll().onsuccess = (e) => {
-        const data = JSON.stringify(e.target.result);
+    const store = tx.objectStore("peliculas");
+    
+    store.getAll().onsuccess = (e) => {
+        const todasLasPelis = e.target.result;
+        
+        // Creamos el archivo incluyendo los datos de imagen si existen
+        const data = JSON.stringify(todasLasPelis);
         const blob = new Blob([data], { type: "application/json" });
         const url = URL.createObjectURL(blob);
+        
         const a = document.createElement("a");
         a.href = url;
-        a.download = `cine_backup_${new Date().toLocaleDateString()}.json`;
+        a.download = `cine_total_con_fotos_${new Date().getDate()}.json`;
         a.click();
+        
+        alert("Copia completa generada. ¡Pásala a tu otro dispositivo!");
     };
 }
 
@@ -387,3 +396,4 @@ function importarDatos(input) {
     };
     reader.readAsText(input.files[0]);
 }
+
