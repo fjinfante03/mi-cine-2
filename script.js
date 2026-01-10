@@ -31,10 +31,19 @@ function mostrarSeccion(id) {
 
 function agregarCampoActor(nombre = "", foto = "") {
     const div = document.createElement('div');
-    div.className = "actor-input-row grid-2";
-    div.style.marginBottom = "8px";
-    div.innerHTML = `<input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}">
-                     <input type="text" placeholder="URL Foto" class="foto-actor" value="${foto}">`;
+    // Esta clase 'actor-card-form' es la que separará a los actores
+    div.className = "actor-card-form"; 
+    div.innerHTML = `
+        <div class="grid-2">
+            <div class="input-group">
+                <input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}">
+            </div>
+            <div class="input-group">
+                <input type="text" placeholder="URL Foto Actor" class="foto-actor" value="${foto}">
+            </div>
+        </div>
+        <button type="button" class="btn-eliminar-actor" onclick="this.parentElement.remove()">✕ Quitar actor</button>
+    `;
     document.getElementById('contenedor-actores').appendChild(div);
 }
 
@@ -214,5 +223,6 @@ function irAListadoEspecial(estado) {
     // 4. Forzamos la recarga de las películas con el nuevo filtro
     cargarPeliculas();
 }
+
 
 
