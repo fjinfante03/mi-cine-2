@@ -17,56 +17,79 @@ request.onsuccess = (e) => {
 // NAVEGACIÓN
 function toggleMenu() {
     const menu = document.getElementById("side-menu");
+    if (!menu) return;
     menu.style.width = menu.style.width === "250px" ? "0" : "250px";
 }
 
 function mostrarSeccion(id) {
     document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
-    document.getElementById(id === 'inicio' ? 'seccion-inicio' : 
-                            id === 'listado' ? 'seccion-listado' : id).style.display = 'block';
-    if(id === 'listado') cargarPeliculas();
+    const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
+    const section = document.getElementById(target);
+    if (section) section.style.display = 'block';
+    if (id === 'listado') cargarPeliculas();
     toggleMenu();
 }
 
-// GUARDAR PELÍCULA (URL DE IMAGEN)
-document.getElementById('form-pelicula').onsubmit = (e) => {
-    e.preventDefault();
+// GUARDAR PELÍCULA (MANEJA VISTAS Y PENDIENTES)
+function validarYGuardar(estado) {
+    const titulo = document.getElementById('titulo').value;
     
-// Dentro de document.getElementById('form-pelicula').onsubmit
+    if (!titulo) {
+        alert("Por favor, introduce al menos el título de la película");
+        return;
+    }
+
     const nuevaPeli = {
-        titulo: document.getElementById('titulo').value,
+        titulo: titulo,
         nombreDirector: document.getElementById('nombreDirector').value,
         fotoDirector: document.getElementById('fotoDirector').value,
         nombreActor: document.getElementById('nombreActor').value,
         fotoActor: document.getElementById('fotoActor').value,
-        nota: parseFloat(document.getElementById('nota').value),
-        duracion: parseInt(document.getElementById('duracion').value) || 0, // <-- Añade esta línea
+        nota: parseFloat(document.getElementById('nota').value) || 0,
+        duracion: parseInt(document.getElementById('duracion').value) || 0,
+        estado: estado, // 'vista' o 'pendiente'
         fecha: new Date().toLocaleDateString()
     };
 
     const tx = db.transaction("peliculas", "readwrite");
-    tx.objectStore("peliculas").add(nuevaPeli);
+    const store = tx.objectStore("peliculas");
+    
+    store.add(nuevaPeli);
+    
     tx.oncomplete = () => {
-        alert("¡Película guardada!");
+        alert(estado === 'vista' ? "✅ ¡Añadida a tus películas vistas!" : "⏳ ¡Añadida a tu lista de pendientes!");
         document.getElementById('form-pelicula').reset();
         mostrarSeccion('listado');
     };
-};
 
-// CARGAR LISTADO
+    tx.onerror = () => {
+        alert("Hubo un error al guardar la película.");
+    };
+}
+
+// CARGAR LISTADO EN BIBLIOTECA
 function cargarPeliculas() {
     const lista = document.getElementById('lista-peliculas');
+    if (!lista) return;
     lista.innerHTML = "";
     
     db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
-        e.target.result.forEach(peli => {
+        const peliculas = e.target.result;
+        
+        // Ordenamos para que las pendientes salgan con una marca visual
+        peliculas.forEach(peli => {
             const div = document.createElement('div');
             div.className = 'card-peli';
+            const esPendiente = peli.estado === 'pendiente';
+            
             div.innerHTML = `
-                <img src="${peli.fotoActor || 'https://via.placeholder.com/150'}" class="img-peli">
+                <div style="position: relative;">
+                    <img src="${peli.fotoActor || 'https://via.placeholder.com/150'}" class="img-peli" style="${esPendiente ? 'filter: grayscale(0.8);' : ''}">
+                    ${esPendiente ? '<span style="position:absolute; top:5px; right:5px; background: #ffc107; color:black; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">PENDIENTE</span>' : ''}
+                </div>
                 <div style="padding:10px;">
-                    <h4 style="margin:5px 0;">${peli.titulo}</h4>
-                    <small style="color:red;">★ ${peli.nota}</small>
+                    <h4 style="margin:5px 0; font-size: 14px;">${peli.titulo}</h4>
+                    ${!esPendiente ? `<small style="color: gold;">★ ${peli.nota}</small>` : '<small style="color: #bbb;">⏳ Por ver</small>'}
                 </div>
             `;
             lista.appendChild(div);
@@ -74,62 +97,76 @@ function cargarPeliculas() {
     };
 }
 
-// FUNCIONES DE COPIA DE SEGURIDAD (IMPORTAR/EXPORTAR)
-function exportarDatos() {
-    db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
-        const blob = new Blob([JSON.stringify(e.target.result)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `cine_backup.json`;
-        a.click();
-    };
-}
-
-function importarDatos(input) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const pelis = JSON.parse(e.target.result);
-        const tx = db.transaction("peliculas", "readwrite");
-        const store = tx.objectStore("peliculas");
-        pelis.forEach(p => store.put(p));
-        tx.oncomplete = () => { alert("Datos cargados"); location.reload(); };
-    };
-    reader.readAsText(input.files[0]);
-}
-
-// ESTADÍSTICAS
+// ESTADÍSTICAS (CONVERSIÓN DE MINUTOS A HORAS)
 function abrirEstadisticas() {
     mostrarSeccion('pantalla-estadisticas');
     db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
         const pelis = e.target.result;
         
-        // Cálculo de nota media
-        const media = pelis.reduce((acc, p) => acc + p.nota, 0) / (pelis.length || 1);
+        const vistas = pelis.filter(p => p.estado === 'vista');
+        const pendientes = pelis.filter(p => p.estado === 'pendiente');
         
-        // Cálculo de tiempo total
-        const minutosTotales = pelis.reduce((acc, p) => acc + (p.duracion || 0), 0);
-        const horas = Math.floor(minutosTotales / 60);
-        const minutosRestantes = minutosTotales % 60;
+        // Cálculos
+        const media = vistas.reduce((acc, p) => acc + (p.nota || 0), 0) / (vistas.length || 1);
+        const minTotales = vistas.reduce((acc, p) => acc + (p.duracion || 0), 0);
+        const horas = Math.floor(minTotales / 60);
+        const mins = minTotales % 60;
 
-        document.getElementById('stats-content').innerHTML = `
-            <div style="display: grid; gap: 15px;">
-                <div style="background:#222; padding:20px; border-radius:12px; text-align:center;">
-                    <h1 style="font-size:40px; margin:0; color:var(--main-red);">${pelis.length}</h1>
-                    <p style="color:var(--text-gray); margin:5px 0;">Películas vistas</p>
-                </div>
+        const statsContent = document.getElementById('stats-content');
+        if (statsContent) {
+            statsContent.innerHTML = `
+                <div style="display: grid; gap: 15px;">
+                    <div style="background:#1a1a1a; padding:20px; border-radius:15px; border-left: 5px solid #28a745;">
+                        <h1 style="margin:0; color:#28a745; font-size:35px;">${vistas.length}</h1>
+                        <p style="margin:0; color:#aaa;">Películas Vistas</p>
+                        <p style="margin:5px 0 0 0; font-weight:bold;">🕒 ${horas}h ${mins}min de cine</p>
+                    </div>
 
-                <div style="background:#222; padding:20px; border-radius:12px; text-align:center;">
-                    <h1 style="font-size:35px; margin:0; color:white;">${horas}h <span style="font-size:20px;">${minutosRestantes}min</span></h1>
-                    <p style="color:var(--text-gray); margin:5px 0;">Tiempo total de cine</p>
-                </div>
+                    <div style="background:#1a1a1a; padding:20px; border-radius:15px; border-left: 5px solid #ffc107;">
+                        <h1 style="margin:0; color:#ffc107; font-size:35px;">${pendientes.length}</h1>
+                        <p style="margin:0; color:#aaa;">Películas Pendientes</p>
+                    </div>
 
-                <div style="background:#222; padding:20px; border-radius:12px; text-align:center;">
-                    <h1 style="font-size:40px; margin:0; color:gold;">★ ${media.toFixed(1)}</h1>
-                    <p style="color:var(--text-gray); margin:5px 0;">Nota Media</p>
+                    <div style="background:#1a1a1a; padding:20px; border-radius:15px; text-align:center;">
+                        <h1 style="margin:0; color:gold; font-size:35px;">★ ${media.toFixed(1)}</h1>
+                        <p style="margin:0; color:#aaa;">Nota Media (Vistas)</p>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
     };
+}
+
+// COPIAS DE SEGURIDAD
+function exportarDatos() {
+    db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
+        const data = JSON.stringify(e.target.result);
+        const blob = new Blob([data], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mi_cine_respaldo_${new Date().getDate()}.json`;
+        a.click();
+    };
+}
+
+function importarDatos(input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const pelis = JSON.parse(e.target.result);
+            const tx = db.transaction("peliculas", "readwrite");
+            const store = tx.objectStore("peliculas");
+            pelis.forEach(p => store.put(p));
+            tx.oncomplete = () => {
+                alert("¡Datos importados con éxito!");
+                location.reload();
+            };
+        } catch (err) {
+            alert("Error: El archivo no es válido");
+        }
+    };
+    reader.readAsText(input.files[0]);
 }
 
