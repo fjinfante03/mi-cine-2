@@ -1,12 +1,11 @@
 let db;
 let currentTab = 'todas';
-const request = indexedDB.open("CineTrackDB", 6);
+let miGrafico = null;
+const request = indexedDB.open("CineTrackDB", 7);
 
 request.onupgradeneeded = (e) => {
     db = e.target.result;
-    if (!db.objectStoreNames.contains("peliculas")) {
-        db.createObjectStore("peliculas", { keyPath: "id", autoIncrement: true });
-    }
+    if (!db.objectStoreNames.contains("peliculas")) db.createObjectStore("peliculas", { keyPath: "id", autoIncrement: true });
 };
 
 request.onsuccess = (e) => { db = e.target.result; cargarPeliculas(); };
@@ -18,38 +17,39 @@ function toggleMenu() {
 
 function mostrarSeccion(id) {
     document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
+    const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
+    document.getElementById(target).style.display = 'block';
     if (id === 'seccion-directores') generarPersonas('director');
-    else if (id === 'seccion-actores') generarPersonas('actor');
-    else if (id === 'pantalla-estadisticas') abrirEstadisticas();
-    else {
-        const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
-        document.getElementById(target).style.display = 'block';
-    }
+    if (id === 'seccion-actores') generarPersonas('actor');
+    if (id === 'pantalla-estadisticas') abrirEstadisticas();
     if (id === 'listado') cargarPeliculas();
     toggleMenu();
 }
 
+function irAListadoEspecial(estado) {
+    currentTab = estado;
+    mostrarSeccion('listado');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + estado).classList.add('active');
+    cargarPeliculas();
+}
+
 function agregarCampoActor(nombre = "", foto = "") {
     const div = document.createElement('div');
-    // Esta clase 'actor-card-form' es la que separará a los actores
-    div.className = "actor-card-form"; 
+    div.className = "actor-card-form";
     div.innerHTML = `
         <div class="grid-2">
-            <div class="input-group">
-                <input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}">
-            </div>
-            <div class="input-group">
-                <input type="text" placeholder="URL Foto Actor" class="foto-actor" value="${foto}">
-            </div>
+            <input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}">
+            <input type="text" placeholder="URL Foto" class="foto-actor" value="${foto}">
         </div>
-        <button type="button" class="btn-eliminar-actor" onclick="this.parentElement.remove()">✕ Quitar actor</button>
+        <button type="button" style="background:none; border:none; color:red; font-size:10px; width:100%; text-align:right; margin-top:5px; cursor:pointer;" onclick="this.parentElement.remove()">✕ Quitar</button>
     `;
     document.getElementById('contenedor-actores').appendChild(div);
 }
 
 function validarYGuardar(estado) {
     const id = document.getElementById('edit-id').value;
-    const reparto = Array.from(document.querySelectorAll('.actor-input-row')).map(f => ({
+    const reparto = Array.from(document.querySelectorAll('.actor-card-form')).map(f => ({
         nombre: f.querySelector('.nombre-actor').value,
         foto: f.querySelector('.foto-actor').value
     })).filter(a => a.nombre);
@@ -75,43 +75,30 @@ function validarYGuardar(estado) {
     tx.oncomplete = () => location.reload();
 }
 
-function cambiarTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-    cargarPeliculas();
-}
-
 function cargarPeliculas() {
     const lista = document.getElementById('lista-peliculas');
     const busqueda = document.getElementById('buscador').value.toLowerCase();
     lista.innerHTML = "";
-    
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        e.target.result.filter(p => {
-            const mTab = currentTab === 'todas' || p.estado === currentTab;
-            const mBusq = p.titulo.toLowerCase().includes(busqueda);
-            return mTab && mBusq;
-        }).forEach(p => {
-            const esVista = p.estado === 'vista';
-            const badgeNota = esVista ? `<div class="nota-badge">⭐ ${p.nota.toFixed(1)}</div>` : '';
-            const badgeVeces = (esVista && p.vecesVista > 1) ? `<div class="veces-badge">VISTA ${p.vecesVista} VECES</div>` : '';
-            
+        e.target.result.filter(p => (currentTab === 'todas' || p.estado === currentTab) && p.titulo.toLowerCase().includes(busqueda))
+        .forEach(p => {
+            const esV = p.estado === 'vista';
             const div = document.createElement('div');
             div.className = 'card-peli';
             div.innerHTML = `
-                <div style="position: relative;">
+                <div style="position:relative;">
                     <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
-                    <div style="position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; align-items: flex-end;">
-                        ${badgeNota}${badgeVeces}
+                    <div style="position:absolute; top:8px; right:8px; display:flex; flex-direction:column; align-items:flex-end;">
+                        ${esV ? `<div class="nota-badge">⭐ ${p.nota.toFixed(1)}</div>` : ''}
+                        ${esV && p.vecesVista > 1 ? `<div class="veces-badge">VISTA ${p.vecesVista} VECES</div>` : ''}
                     </div>
                 </div>
-                <div style="padding:12px;">
-                    <h4 style="margin:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
-                    <div style="font-size:10px; color:#888; margin-top:4px;">${esVista && p.fechaVista ? '📅 ' + new Date(p.fechaVista).toLocaleDateString() : ''}</div>
-                    <div style="display:flex; justify-content:space-between; margin-top:10px;">
-                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
-                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
+                <div style="padding:10px;">
+                    <h4 style="margin:0; font-size:14px;">${p.titulo}</h4>
+                    <p style="font-size:10px; color:#888; margin:5px 0;">${esV && p.fechaVista ? '📅 ' + new Date(p.fechaVista).toLocaleDateString() : ''}</p>
+                    <div style="display:flex; justify-content:space-between;">
+                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan;">✏️</button>
+                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red;">🗑️</button>
                     </div>
                 </div>`;
             lista.appendChild(div);
@@ -119,94 +106,42 @@ function cargarPeliculas() {
     };
 }
 
-function generarPersonas(tipo) {
-    const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
-    contenedor.innerHTML = "";
-    document.getElementById(tipo === 'director' ? 'seccion-directores' : 'seccion-actores').style.display = 'block';
-
-    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        let mapa = {};
-        e.target.result.forEach(p => {
-            if (tipo === 'director' && p.nombreDirector) {
-                if (!mapa[p.nombreDirector]) mapa[p.nombreDirector] = { foto: p.fotoDirector, pelis: [] };
-                mapa[p.nombreDirector].pelis.push(p.fotoPortada);
-            } else if (tipo === 'actor' && p.reparto) {
-                p.reparto.forEach(a => {
-                    if (!mapa[a.nombre]) mapa[a.nombre] = { foto: a.foto, pelis: [] };
-                    mapa[a.nombre].pelis.push(p.fotoPortada);
-                });
-            }
-        });
-        for (let n in mapa) {
-            const div = document.createElement('div');
-            div.className = 'persona-card';
-            div.innerHTML = `<div class="persona-header">
-                <img src="${mapa[n].foto || 'https://via.placeholder.com/60'}" class="persona-img" onclick="ampliar('${mapa[n].foto}')">
-                <h3 style="margin:0;">${n}</h3>
-            </div>
-            <div class="persona-pelis">${mapa[n].pelis.map(img => `<img src="${img}" class="mini-portada" onclick="ampliar('${img}')">`).join('')}</div>`;
-            contenedor.appendChild(div);
-        }
-    };
-}
-
-let miGrafico; // Variable global para destruir el gráfico viejo antes de crear uno nuevo
-
 function abrirEstadisticas() {
     document.getElementById('pantalla-estadisticas').style.display = 'block';
-    
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        const pelisVistas = e.target.result.filter(x => x.estado === 'vista');
-        
-        // 1. Cálculos generales
-        const totalMins = pelisVistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
-        const notaMedia = pelisVistas.reduce((a, b) => a + (b.nota || 0), 0) / (pelisVistas.length || 1);
-
-        // 2. Cálculos por Género (Conteo y Tiempo)
-        let statsGeneros = {};
-        pelisVistas.forEach(p => {
-            if (!statsGeneros[p.genero]) statsGeneros[p.genero] = { count: 0, time: 0 };
-            statsGeneros[p.genero].count++;
-            statsGeneros[p.genero].time += (p.duracion || 0) * (p.vecesVista || 1);
+        const vistas = e.target.result.filter(x => x.estado === 'vista');
+        const mins = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
+        let genStats = {};
+        vistas.forEach(p => {
+            if (!genStats[p.genero]) genStats[p.genero] = { count: 0, time: 0 };
+            genStats[p.genero].count++;
+            genStats[p.genero].time += (p.duracion || 0) * (p.vecesVista || 1);
         });
-
-        // 3. Mostrar texto de estadísticas
-        let htmlGeneros = '<div style="margin-top:15px; text-align:left; font-size:13px;">';
-        for(let g in statsGeneros) {
-            htmlGeneros += `<p>• <b>${g}:</b> ${statsGeneros[g].count} pelis (${Math.floor(statsGeneros[g].time/60)}h)</p>`;
-        }
-        htmlGeneros += '</div>';
 
         document.getElementById('stats-content').innerHTML = `
             <div class="persona-card" style="text-align:center;">
-                <h1 style="color:var(--main-red); font-size:40px; margin:0;">${pelisVistas.length}</h1>
+                <h1 style="color:var(--main-red); margin:0;">${vistas.length}</h1>
                 <p>Películas Vistas</p>
-                <h2>${Math.floor(totalMins/60)}h ${totalMins%60}min</h2>
-                <p>Tiempo total</p>
-                <p>⭐ Nota Media: <b>${notaMedia.toFixed(1)}</b></p>
-                ${htmlGeneros}
+                <h2>${Math.floor(mins/60)}h ${mins%60}min</h2>
+                <p>Tiempo Total</p>
             </div>`;
 
-        // 4. Crear el Gráfico Circular
-        const ctx = document.getElementById('graficoGeneros').getContext('2d');
-        if (miGrafico) miGrafico.destroy(); // Limpiar gráfico anterior
-        
-        miGrafico = new Chart(ctx, {
-            type: 'doughnut', // Gráfico circular tipo "donante" (más moderno)
-            data: {
-                labels: Object.keys(statsGeneros),
-                datasets: [{
-                    data: Object.values(statsGeneros).map(g => g.time),
-                    backgroundColor: ['#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: { labels: { color: 'white' } }
-                }
-            }
-        });
+        setTimeout(() => {
+            const ctx = document.getElementById('graficoGeneros').getContext('2d');
+            if (miGrafico) miGrafico.destroy();
+            miGrafico = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(genStats),
+                    datasets: [{
+                        data: Object.values(genStats).map(g => g.time),
+                        backgroundColor: ['#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8'],
+                        borderColor: '#141414'
+                    }]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { color: 'white' } } } }
+            });
+        }, 200);
     };
 }
 
@@ -249,22 +184,31 @@ function importarDatos(i) {
     r.readAsText(i.files[0]);
 }
 
-// Función especial para ir al listado con un filtro ya aplicado
-function irAListadoEspecial(estado) {
-    // 1. Cambiamos la pestaña interna
-    currentTab = estado;
-    
-    // 2. Mostramos la sección del listado
-    mostrarSeccion('listado');
-    
-    // 3. Actualizamos visualmente los botones de las pestañas (tabs)
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + estado).classList.add('active');
-    
-    // 4. Forzamos la recarga de las películas con el nuevo filtro
-    cargarPeliculas();
+function generarPersonas(tipo) {
+    const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
+    contenedor.innerHTML = "";
+    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
+        let mapa = {};
+        e.target.result.forEach(p => {
+            if (tipo === 'director' && p.nombreDirector) {
+                if (!mapa[p.nombreDirector]) mapa[p.nombreDirector] = { foto: p.fotoDirector, pelis: [] };
+                mapa[p.nombreDirector].pelis.push(p.fotoPortada);
+            } else if (tipo === 'actor' && p.reparto) {
+                p.reparto.forEach(a => {
+                    if (!mapa[a.nombre]) mapa[a.nombre] = { foto: a.foto, pelis: [] };
+                    mapa[a.nombre].pelis.push(p.fotoPortada);
+                });
+            }
+        });
+        for (let n in mapa) {
+            const div = document.createElement('div');
+            div.className = 'persona-card';
+            div.innerHTML = `<div class="persona-header"><img src="${mapa[n].foto || 'https://via.placeholder.com/60'}" class="persona-img"><h3>${n}</h3></div>
+            <div class="persona-pelis">${mapa[n].pelis.map(img => `<img src="${img}" class="mini-portada">`).join('')}</div>`;
+            contenedor.appendChild(div);
+        }
+    };
 }
-
 
 
 
