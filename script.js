@@ -107,16 +107,73 @@ function cargarPeliculas() {
 }
 
 function abrirEstadisticas() {
-    document.getElementById('pantalla-estadisticas').style.display = 'block';
+    // 1. Forzamos que la sección sea visible primero
+    const seccion = document.getElementById('pantalla-estadisticas');
+    seccion.style.display = 'block';
+
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         const vistas = e.target.result.filter(x => x.estado === 'vista');
         const mins = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
+        
+        // Agrupamos datos por género
         let genStats = {};
         vistas.forEach(p => {
-            if (!genStats[p.genero]) genStats[p.genero] = { count: 0, time: 0 };
-            genStats[p.genero].count++;
-            genStats[p.genero].time += (p.duracion || 0) * (p.vecesVista || 1);
+            const g = p.genero || "Sin Género";
+            if (!genStats[g]) genStats[g] = { count: 0, time: 0 };
+            genStats[g].count++;
+            genStats[g].time += (p.duracion || 0) * (p.vecesVista || 1);
         });
+
+        // Insertamos el texto de resumen
+        document.getElementById('stats-content').innerHTML = `
+            <div class="persona-card" style="text-align:center; background: #1a1a1a; border: 1px solid var(--main-red);">
+                <h1 style="color:var(--main-red); margin:0; font-size:45px;">${vistas.length}</h1>
+                <p style="color:#888; margin-bottom:10px;">Películas Vistas</p>
+                <h2 style="margin:5px 0;">${Math.floor(mins/60)}h ${mins%60}min</h2>
+                <p style="color:#888;">Tiempo total en pantalla</p>
+            </div>
+        `;
+
+        // 2. FUNCIÓN PARA DIBUJAR EL GRÁFICO (Con retraso para asegurar carga)
+        setTimeout(() => {
+            const ctx = document.getElementById('graficoGeneros');
+            
+            // Verificamos si la librería Chart existe
+            if (typeof Chart === 'undefined') {
+                console.error("La librería Chart.js no ha cargado. Revisa tu conexión o el enlace en el HTML.");
+                return;
+            }
+
+            if (miGrafico) miGrafico.destroy(); // Limpiamos rastro del anterior
+
+            miGrafico = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(genStats),
+                    datasets: [{
+                        label: 'Minutos',
+                        data: Object.values(genStats).map(g => g.time),
+                        backgroundColor: [
+                            '#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#141414'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: 'white', padding: 20, font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        }, 300); // 300ms de margen para que el navegador procese el canvas
+    };
+}
 
         document.getElementById('stats-content').innerHTML = `
             <div class="persona-card" style="text-align:center;">
@@ -209,6 +266,7 @@ function generarPersonas(tipo) {
         }
     };
 }
+
 
 
 
