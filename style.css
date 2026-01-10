@@ -1,166 +1,32 @@
-:root {
-    --main-red: #e50914;
-    --dark-bg: #141414;
-    --card-bg: #1f1f1f;
-    --input-bg: #2b2b2b;
-    --text-white: #ffffff;
-    --text-gray: #b3b3b3;
+/* ... (mismo root y header anterior) ... */
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bg-green { background: #28a745 !important; color: white; }
+.bg-yellow { background: #ffc107 !important; color: black; }
+
+/* BUSCADOR Y TABS */
+#buscador {
+    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333;
+    background: #222; color: white; margin-bottom: 15px; box-sizing: border-box;
 }
 
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--dark-bg);
-    color: var(--text-white);
-    -webkit-tap-highlight-color: transparent;
+.tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+.tab-btn {
+    flex: 1; padding: 10px; border: none; background: #222; color: #888;
+    border-radius: 5px; cursor: pointer; font-size: 12px;
 }
+.tab-btn.active { background: var(--main-red); color: white; }
 
-/* CABECERA CORREGIDA */
-header {
-    background-color: #000;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: fixed; /* Cambiado de sticky a fixed */
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1500; /* Prioridad alta para estar sobre las secciones */
-    border-bottom: 1px solid #222;
-    height: 60px; /* Altura fija */
-    box-sizing: border-box;
-}
+/* PERSONAS */
+.persona-card { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+.persona-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+.persona-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--main-red); cursor: zoom-in; }
+.persona-pelis { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; }
+.mini-portada { width: 50px; height: 75px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
 
-/* IMPORTANTE: Añade esto para que el contenido no se meta debajo del menú */
-main {
-    margin-top: 70px; /* Deja espacio para la cabecera fija */
-}
+/* MODAL */
+.modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+.modal img { max-width: 90%; max-height: 80%; border-radius: 10px; }
 
-/* Asegúrate de que las secciones no oculten el menú */
-.container {
-    padding: 20px;
-    max-width: 500px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 10;
-}
-
-.menu-icon {
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    z-index: 2001;
-}
-
-.bar {
-    width: 25px;
-    height: 3px;
-    background-color: var(--text-white); /* Asegura que se vea la barra */
-    border-radius: 2px;
-}
-
-/* MENÚ LATERAL */
-.side-menu {
-    height: 100%;
-    width: 0;
-    position: fixed;
-    z-index: 2005;
-    top: 0;
-    left: 0;
-    background-color: #000;
-    overflow-x: hidden;
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-}
-
-.menu-header {
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #222;
-}
-
-.side-menu a {
-    padding: 18px 25px;
-    text-decoration: none;
-    font-size: 16px;
-    color: var(--text-gray);
-    display: block;
-    border-bottom: 1px solid #111;
-}
-
-.side-menu a:active { background: #222; color: var(--main-red); }
-
-/* FORMULARIO ESTILIZADO */
-.container { padding: 20px; max-width: 500px; margin: 0 auto; }
-
-h2 { font-size: 24px; margin-bottom: 20px; border-left: 4px solid var(--main-red); padding-left: 10px; }
-
-.input-group { margin-bottom: 18px; }
-
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: var(--text-gray);
-    font-weight: 500;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 14px;
-    background-color: var(--input-bg);
-    border: 1px solid #333;
-    border-radius: 10px;
-    color: white;
-    box-sizing: border-box;
-    font-size: 16px;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-.input-group input:focus { border-color: var(--main-red); }
-
-/* BOTONES DEL FORMULARIO */
-.btn-save {
-    border: none;
-    padding: 16px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* LISTADO DE PELÍCULAS */
-.grid-peliculas {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
-}
-
-.card-peli {
-    background: var(--card-bg);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: transform 0.2s;
-}
-
-.img-peli { width: 100%; height: 210px; object-fit: cover; }
-
-/* HERRAMIENTAS MENÚ */
-.menu-tools { padding: 10px 20px; }
-.btn-menu-especial {
-    width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #333;
-    background: #222; color: white; margin: 10px 0; font-weight: bold;
-}
-.grid-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.btn-menu-dato {
-    background: #1a1a1a; border: 1px solid #33
+.custom-select { width: 100%; padding: 12px; background: #2b2b2b; color: white; border-radius: 8px; border: 1px solid #333; }
 
