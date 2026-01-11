@@ -183,19 +183,68 @@ function abrirEstadisticas() {
 function generarPersonas(tipo) {
     const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
     contenedor.innerHTML = "";
+
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         let mapa = {};
-        e.target.result.forEach(p => {
+        const todasPelis = e.target.result;
+
+        todasPelis.forEach(p => {
             if (tipo === 'director' && p.nombreDirector) {
-                if (!mapa[p.nombreDirector]) mapa[p.nombreDirector] = { foto: p.fotoDirector, pelis: new Set() };
-                mapa[p.nombreDirector].pelis.add(p.fotoPortada);
+                if (!mapa[p.nombreDirector]) {
+                    mapa[p.nombreDirector] = { nombre: p.nombreDirector, foto: p.fotoDirector, pelis: [] };
+                }
+                mapa[p.nombreDirector].pelis.push(p);
             } else if (tipo === 'actor' && p.reparto) {
                 p.reparto.forEach(a => {
-                    if (!mapa[a.nombre]) mapa[a.nombre] = { foto: a.foto, pelis: new Set() };
-                    mapa[a.nombre].pelis.add(p.fotoPortada);
+                    if (!mapa[a.nombre]) {
+                        mapa[a.nombre] = { nombre: a.nombre, foto: a.foto, pelis: [] };
+                    }
+                    mapa[a.nombre].pelis.push(p);
                 });
             }
         });
+
+        // Convertimos el mapa en un Array para poder ordenarlo
+        let listaOrdenada = Object.values(mapa);
+
+        // 1. ORDENAR PERSONAS: De más películas vistas a menos
+        listaOrdenada.sort((a, b) => b.pelis.length - a.pelis.length);
+
+        listaOrdenada.forEach(persona => {
+            const div = document.createElement('div');
+            div.className = 'persona-card';
+
+            // 2. ORDENAR PELIS DE LA PERSONA: Por nota (de mayor a menor)
+            persona.pelis.sort((a, b) => (b.nota || 0) - (a.nota || 0));
+
+            // Generamos el HTML de las portadas con su nota sutilmente encima
+            const pelisHtml = persona.pelis.map(p => `
+                <div style="position:relative; flex-shrink:0;">
+                    <img src="${p.fotoPortada || 'https://via.placeholder.com/60'}" class="mini-portada" onclick="ampliar('${p.fotoPortada}')">
+                    <span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#ffc107; font-size:9px; padding:1px 3px; border-radius:3px;">⭐${p.nota || 0}</span>
+                </div>
+            `).join('');
+
+            div.innerHTML = `
+                <div class="persona-header">
+                    <div style="position:relative;">
+                        <img src="${persona.foto || 'https://via.placeholder.com/60'}" class="persona-img">
+                        <span style="position:absolute; top:-5px; right:-5px; background:var(--main-red); color:white; border-radius:50%; width:20px; height:20px; font-size:12px; display:flex; align-items:center; justify-content:center; border:2px solid black;">
+                            ${persona.pelis.length}
+                        </span>
+                    </div>
+                    <div>
+                        <h3 style="margin:0;">${persona.nombre}</h3>
+                        <p style="margin:0; font-size:11px; color:#888;">${persona.pelis.length} películas en tu lista</p>
+                    </div>
+                </div>
+                <div class="persona-pelis">
+                    ${pelisHtml}
+                </div>`;
+            contenedor.appendChild(div);
+        });
+    };
+}
         for (let n in mapa) {
             const pelisArr = Array.from(mapa[n].pelis);
             const div = document.createElement('div');
@@ -252,6 +301,7 @@ function cambiarTab(tab) {
     document.getElementById('tab-' + tab).classList.add('active');
     cargarPeliculas();
 }
+
 
 
 
