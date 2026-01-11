@@ -113,7 +113,8 @@ function abrirEstadisticas() {
     document.getElementById('pantalla-estadisticas').style.display = 'block';
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         const vistas = e.target.result.filter(x => x.estado === 'vista');
-        const mins = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
+        const totalMins = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
+        
         let genStats = {};
         vistas.forEach(p => {
             const g = p.genero || "Sin Género";
@@ -126,7 +127,7 @@ function abrirEstadisticas() {
             <div class="persona-card" style="text-align:center;">
                 <h1 style="color:var(--main-red); margin:0;">${vistas.length}</h1>
                 <p>Películas Vistas</p>
-                <h2>${Math.floor(mins/60)}h ${mins%60}min</h2>
+                <h2>${Math.floor(totalMins/60)}h ${totalMins%60}min</h2>
                 <p>Tiempo Total</p>
             </div>`;
 
@@ -134,13 +135,24 @@ function abrirEstadisticas() {
             if (typeof Chart === 'undefined') return;
             const ctx = document.getElementById('graficoGeneros').getContext('2d');
             if (miGrafico) miGrafico.destroy();
+
+            // Convertimos los minutos de cada género a HORAS (con 1 decimal)
+            const labelsGeneros = Object.keys(genStats);
+            const datosHoras = Object.values(genStats).map(g => (g.time / 60).toFixed(1));
+
             miGrafico = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(genStats),
+                    labels: labelsGeneros,
                     datasets: [{
-                        data: Object.values(genStats).map(g => g.time),
-                        backgroundColor: ['#e50914', '#007bff', '#28a745', '#ffc107', '#17a2b8', '#6610f2'],
+                        label: 'Horas visualizadas',
+                        data: datosHoras,
+                        // Paleta de colores expandida y variada
+                        backgroundColor: [
+                            '#e50914', '#2ecc71', '#3498db', '#f1c40f', 
+                            '#9b59b6', '#e67e22', '#1abc9c', '#34495e',
+                            '#d35400', '#c0392b', '#7f8c8d', '#27ae60'
+                        ],
                         borderColor: '#141414',
                         borderWidth: 2
                     }]
@@ -148,7 +160,20 @@ function abrirEstadisticas() {
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { size: 11 } } } } 
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { color: 'white', font: { size: 11 } } 
+                        },
+                        // Tooltip personalizado para que diga "horas"
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw} horas`;
+                                }
+                            }
+                        }
+                    } 
                 }
             });
         }, 300);
@@ -227,6 +252,7 @@ function cambiarTab(tab) {
     document.getElementById('tab-' + tab).classList.add('active');
     cargarPeliculas();
 }
+
 
 
 
