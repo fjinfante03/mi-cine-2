@@ -88,6 +88,31 @@
                     </div>
                 </div>
 
+            <div class="grid-2">
+                    <div class="input-group">
+                        <label>Año de estreno</label>
+                        <input type="number" id="anio" placeholder="Ej: 2024">
+                    </div>
+                <div class="input-group">
+                    <label>Nacionalidad</label>
+                    <input type="text" id="nacionalidad" placeholder="Ej: España, EEUU...">
+                </div>
+            </div>
+
+            <div class="persona-card" style="margin-top:20px;">
+                <h3 style="text-align:center; margin-bottom:15px;">Películas por Nacionalidad</h3>
+                <div class="chart-container">
+                    <canvas id="graficoPaises"></canvas>
+                </div>
+            </div>
+
+            <div class="persona-card" style="margin-top:20px;">
+                <h3 style="text-align:center; margin-bottom:15px;">Películas por Década</h3>
+                <div class="chart-container">
+                    <canvas id="graficoDecadas"></canvas>
+                </div>
+            </div>    
+
                 <div class="grid-3">
                     <div class="input-group"><label>Fecha</label><input type="date" id="fechaVista"></div>
                     <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1" max="10"></div>
@@ -143,6 +168,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
