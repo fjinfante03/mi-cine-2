@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Ultra</title>
+    <title>CinePro Ultra v9</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -37,7 +37,7 @@
         <section id="seccion-inicio" class="container">
             <div class="welcome-card">
                 <h2>CinePro Ultra</h2>
-                <p>Tu base de datos personal de cine y reparto.</p>
+                <p>Tu base de datos personal con analíticas avanzadas.</p>
             </div>
             <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Nueva Película</button>
         </section>
@@ -66,14 +66,13 @@
                         <label>Género</label>
                         <select id="genero" class="custom-select">
                             <option value="Acción">Acción</option>
-                            <option value="Amor">Amor</option>
+                            <option value="Amor">Amor ❤️</option>
                             <option value="Drama">Drama</option>
                             <option value="Comedia">Comedia</option>
                             <option value="Terror">Terror</option>
                             <option value="Ciencia Ficción">Ciencia Ficción</option>
                             <option value="Aventura">Aventura</option>
-                            <option value="Intriga">Intriga</option>
-                            <option value="Thriller">Thriller</option>
+                            <option value="Documental">Documental</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -88,37 +87,17 @@
                     </div>
                 </div>
 
-            <div class="grid-2">
-                    <div class="input-group">
-                        <label>Año de estreno</label>
-                        <input type="number" id="anio" placeholder="Ej: 2024">
-                    </div>
-                <div class="input-group">
-                    <label>Nacionalidad</label>
-                    <input type="text" id="nacionalidad" placeholder="Ej: España, EEUU...">
+                <div class="grid-2">
+                    <div class="input-group"><label>Año</label><input type="number" id="anio"></div>
+                    <div class="input-group"><label>Nacionalidad</label><input type="text" id="nacionalidad" placeholder="Ej: España"></div>
                 </div>
-            </div>
-
-            <div class="persona-card" style="margin-top:20px;">
-                <h3 style="text-align:center; margin-bottom:15px;">Películas por Nacionalidad</h3>
-                <div class="chart-container">
-                    <canvas id="graficoPaises"></canvas>
-                </div>
-            </div>
-
-            <div class="persona-card" style="margin-top:20px;">
-                <h3 style="text-align:center; margin-bottom:15px;">Películas por Década</h3>
-                <div class="chart-container">
-                    <canvas id="graficoDecadas"></canvas>
-                </div>
-            </div>    
 
                 <div class="grid-3">
                     <div class="input-group"><label>Fecha</label><input type="date" id="fechaVista"></div>
                     <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1" max="10"></div>
                     <div class="input-group"><label>Visto</label><input type="number" id="vecesVista" min="1" value="1"></div>
                 </div>
-                <div class="input-group"><label>Minutos</label><input type="number" id="duracion"></div>
+                <div class="input-group"><label>Minutos de duración</label><input type="number" id="duracion"></div>
 
                 <div class="grid-2">
                     <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">🎬 VISTA</button>
@@ -128,7 +107,7 @@
         </section>
 
         <section id="seccion-listado" class="container" style="display:none;">
-            <input type="text" id="buscador" placeholder="🔍 Buscar..." oninput="cargarPeliculas()">
+            <input type="text" id="buscador" placeholder="🔍 Buscar título..." oninput="cargarPeliculas()">
             <div class="tabs">
                 <button id="tab-todas" class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
                 <button id="tab-vista" class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
@@ -137,17 +116,26 @@
             <div id="lista-peliculas" class="grid-peliculas"></div>
         </section>
 
-        <section id="seccion-directores" class="container" style="display:none;"><h2>Directores</h2><div id="lista-directores"></div></section>
-        <section id="seccion-actores" class="container" style="display:none;"><h2>Actores</h2><div id="lista-actores"></div></section>
+        <section id="seccion-directores" class="container" style="display:none;"><h2>Ranking Directores</h2><div id="lista-directores"></div></section>
+        <section id="seccion-actores" class="container" style="display:none;"><h2>Ranking Actores</h2><div id="lista-actores"></div></section>
 
         <section id="pantalla-estadisticas" class="container" style="display:none;">
             <h2>Estadísticas Pro</h2>
             <div id="stats-content"></div>
-            <div class="persona-card" style="margin-top:20px;">
-                <h3 style="text-align:center; margin-bottom:15px;">Tiempo por Género</h3>
-                <div class="chart-container">
-                    <canvas id="graficoGeneros"></canvas>
-                </div>
+            
+            <div class="persona-card">
+                <h3 class="chart-title">Tiempo por Género (Horas)</h3>
+                <div class="chart-container"><canvas id="graficoGeneros"></canvas></div>
+            </div>
+
+            <div class="persona-card">
+                <h3 class="chart-title">Producción por Países</h3>
+                <div class="chart-container"><canvas id="graficoPaises"></canvas></div>
+            </div>
+
+            <div class="persona-card">
+                <h3 class="chart-title">Cine por Décadas</h3>
+                <div class="chart-container"><canvas id="graficoDecadas"></canvas></div>
             </div>
         </section>
 
@@ -156,8 +144,8 @@
             <div class="persona-card">
                 <h3>Copia de Seguridad</h3>
                 <div class="grid-2">
-                    <button onclick="exportarDatos()" class="btn-save" style="background:#444;">💾 GUARDAR</button>
-                    <button onclick="document.getElementById('import-file').click()" class="btn-save" style="background:#444;">📂 CARGAR</button>
+                    <button onclick="exportarDatos()" class="btn-save" style="background:#444;">💾 EXPORTAR</button>
+                    <button onclick="document.getElementById('import-file').click()" class="btn-save" style="background:#444;">📂 IMPORTAR</button>
                 </div>
                 <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
             </div>
