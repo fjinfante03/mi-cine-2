@@ -89,3 +89,11 @@ main { margin-top: 75px; }
 .tab-btn { flex: 1; padding: 10px; background: #222; color: #888; border: none; border-radius: 8px; cursor: pointer; }
 .tab-btn.active { background: var(--main-red); color: white; }
 
+/* Asegura que el contenedor de la lista no mantenga residuos */
+#lista-peliculas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+    min-height: 200px; /* Evita colapsos visuales */
+}
