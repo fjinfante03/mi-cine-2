@@ -81,6 +81,8 @@ function validarYGuardar(estado) {
         genero: document.getElementById('genero').value,
         plataforma: document.getElementById('plataforma').value,
         estado: estado
+        anio: parseInt(document.getElementById('anio').value) || 0,
+        nacionalidad: document.getElementById('nacionalidad').value.trim() || "Desconocida",
     };
 
     const tx = db.transaction("peliculas", "readwrite");
@@ -124,54 +126,88 @@ function cargarPeliculas() {
 }
 
 // Estadísticas con Gráfico
+let graficoPaises = null;
+let graficoDecadas = null;
+
 function abrirEstadisticas() {
     document.getElementById('pantalla-estadisticas').style.display = 'block';
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         const vistas = e.target.result.filter(x => x.estado === 'vista');
-        const totalMins = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
         
-        let genStats = {};
+        // Agrupadores
+        let statsPaises = {};
+        let statsDecadas = {};
+        let genStats = {}; // El de géneros que ya tenías
+
         vistas.forEach(p => {
+            // Nacionalidad
+            const pais = p.nacionalidad || "Desconocida";
+            statsPaises[pais] = (statsPaises[pais] || 0) + 1;
+
+            // Décadas
+            if (p.anio > 0) {
+                const decada = Math.floor(p.anio / 10) * 10;
+                const etiqueta = decada + "s";
+                statsDecadas[etiqueta] = (statsDecadas[etiqueta] || 0) + 1;
+            }
+            
+            // Género (tu lógica anterior)
             const g = p.genero || "Sin Género";
             if (!genStats[g]) genStats[g] = { count: 0, time: 0 };
             genStats[g].count++;
             genStats[g].time += (p.duracion || 0) * (p.vecesVista || 1);
         });
 
-        document.getElementById('stats-content').innerHTML = `
-            <div class="persona-card" style="text-align:center;">
-                <h1 style="color:var(--main-red); margin:0; font-size:40px;">${vistas.length}</h1>
-                <p style="color:#888;">Películas Vistas</p>
-                <h2>${Math.floor(totalMins/60)}h ${totalMins%60}min</h2>
-                <p style="color:#888;">Tiempo Total</p>
-            </div>`;
+        // ... (Renderizado de texto de stats-content que ya tienes)
 
         setTimeout(() => {
             if (typeof Chart === 'undefined') return;
-            const ctx = document.getElementById('graficoGeneros').getContext('2d');
-            if (miGrafico) miGrafico.destroy();
-            
-            const labelsGeneros = Object.keys(genStats);
-            const datosHoras = Object.values(genStats).map(g => (g.time / 60).toFixed(1));
 
-            miGrafico = new Chart(ctx, {
+            // 1. Gráfico de Géneros (Actualizado a Horas)
+            // ... (Copia el código de mi respuesta anterior para miGrafico)
+
+            // 2. Gráfico de Países (Doughnut)
+            const ctxP = document.getElementById('graficoPaises').getContext('2d');
+            if (graficoPaises) graficoPaises.destroy();
+            graficoPaises = new Chart(ctxP, {
                 type: 'doughnut',
                 data: {
-                    labels: labelsGeneros,
+                    labels: Object.keys(statsPaises),
                     datasets: [{
-                        data: datosHoras,
-                        backgroundColor: ['#e50914', '#2ecc71', '#3498db', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#34495e', '#d35400', '#c0392b'],
-                        borderColor: '#141414',
-                        borderWidth: 2
+                        data: Object.values(statsPaises),
+                        backgroundColor: ['#3498db', '#e74c3c', '#2ecc71', '#f1c40f', '#9b59b6']
                     }]
                 },
-                options: { 
-                    responsive: true, 
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white' } } } }
+            });
+
+            // 3. Gráfico de Décadas (Barras)
+            const ctxD = document.getElementById('graficoDecadas').getContext('2d');
+            if (graficoDecadas) graficoDecadas.destroy();
+            
+            // Ordenamos las décadas para que aparezcan en orden cronológico
+            const decadasOrdenadas = Object.keys(statsDecadas).sort();
+
+            graficoDecadas = new Chart(ctxD, {
+                type: 'bar',
+                data: {
+                    labels: decadasOrdenadas,
+                    datasets: [{
+                        label: 'Nº Películas',
+                        data: decadasOrdenadas.map(d => statsDecadas[d]),
+                        backgroundColor: 'rgba(229, 9, 20, 0.7)',
+                        borderColor: '#e50914',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { color: 'white', font: { size: 10 } } },
-                        tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw} horas` } }
-                    } 
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: 'white' } },
+                        x: { ticks: { color: 'white' } }
+                    },
+                    plugins: { legend: { display: false } }
                 }
             });
         }, 300);
@@ -243,6 +279,8 @@ function editar(id) {
         document.getElementById('genero').value = p.genero;
         document.getElementById('plataforma').value = p.plataforma;
         document.getElementById('contenedor-actores').innerHTML = "";
+        document.getElementById('anio').value = p.anio || "";
+        document.getElementById('nacionalidad').value = p.nacionalidad || "";
         if(p.reparto) p.reparto.forEach(a => agregarCampoActor(a.nombre, a.foto));
         mostrarSeccion('nueva-peli');
     };
@@ -276,6 +314,7 @@ function importarDatos(input) {
     };
     reader.readAsText(input.files[0]);
 }
+
 
 
 
