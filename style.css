@@ -34,3 +34,29 @@ main { margin-top: 70px; }
 .persona-pelis { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
 .mini-portada { width: 65px; height: 95px; border-radius: 6px; flex-shrink: 0; object-fit: cover; }
 .chart-container { height: 320px; width: 100% margin-top: 10px; }
+/* Ajuste para que las portadas dentro de la ficha de persona no se corten */
+.persona-pelis {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 5px;
+    scrollbar-width: thin; /* Para navegadores modernos */
+}
+
+.persona-pelis::-webkit-scrollbar {
+    height: 4px;
+}
+
+.persona-pelis::-webkit-scrollbar-thumb {
+    background: var(--main-red);
+    border-radius: 10px;
+}
+
+/* Efecto hover en los nombres del ranking */
+.persona-card h3 {
+    transition: color 0.3s;
+}
+
+.persona-card:hover h3 {
+    color: var(--main-red);
+}
