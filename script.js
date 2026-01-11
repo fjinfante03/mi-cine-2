@@ -84,6 +84,9 @@ function validarYGuardar(estado) {
         anio: parseInt(document.getElementById('anio').value) || 0,
         nacionalidad: document.getElementById('nacionalidad').value.trim() || "Desconocida",
         estado: estado
+        tx.oncomplete = () => {
+        // En lugar de llamar a cargarPeliculas(), refrescamos para limpiar memoria
+        window.location.reload();
     };
 
     const tx = db.transaction("peliculas", "readwrite");
@@ -95,25 +98,44 @@ function validarYGuardar(estado) {
 function cargarPeliculas() {
     const lista = document.getElementById('lista-peliculas');
     const busqueda = document.getElementById('buscador').value.toLowerCase();
+    
+    // 1. Limpieza inmediata al llamar a la función
     lista.innerHTML = ""; 
-    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        e.target.result.filter(p => (currentTab === 'todas' || p.estado === currentTab) && p.titulo.toLowerCase().includes(busqueda))
-        .forEach(p => {
+
+    if (!db) return; // Seguridad si la DB no ha cargado
+
+    const transaction = db.transaction("peliculas", "readonly");
+    const store = transaction.objectStore("peliculas");
+
+    store.getAll().onsuccess = (e) => {
+        const todas = e.target.result;
+        
+        // 2. Segunda limpieza por seguridad justo antes de pintar
+        lista.innerHTML = ""; 
+
+        const filtradas = todas.filter(p => {
+            const coincideTab = (currentTab === 'todas' || p.estado === currentTab);
+            const coincideBusqueda = p.titulo.toLowerCase().includes(busqueda);
+            return coincideTab && coincideBusqueda;
+        });
+
+        // 3. Pintamos solo los resultados únicos
+        filtradas.forEach(p => {
             const div = document.createElement('div');
             div.className = 'card-peli';
             div.innerHTML = `
                 <div style="position:relative;">
                     <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
-                    <div style="position:absolute; top:8px; right:8px; display:flex; flex-direction:column; align-items:flex-end;">
+                    <div style="position:absolute; top:8px; right:8px;">
                         ${p.estado === 'vista' ? `<div class="nota-badge">⭐ ${p.nota}</div>` : ''}
                     </div>
                 </div>
                 <div style="padding:10px;">
                     <h4 style="margin:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
-                    <p style="font-size:10px; color:#888; margin-top:4px;">${p.anio} | ${p.nacionalidad}</p>
+                    <p style="font-size:10px; color:#888; margin-top:4px;">${p.anio || ''} | ${p.nacionalidad || ''}</p>
                     <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan;">✏️</button>
-                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red;">🗑️</button>
+                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; cursor:pointer;">✏️</button>
+                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; cursor:pointer;">🗑️</button>
                     </div>
                 </div>`;
             lista.appendChild(div);
@@ -252,6 +274,7 @@ function importarDatos(f) {
 }
 
 function cambiarTab(t) { currentTab = t; cargarPeliculas(); }
+
 
 
 
