@@ -38,20 +38,21 @@ header {
     position: fixed; 
     z-index: 9999; 
     top: 0; 
-    left: -280px; /* Escondido a la izquierda */
+    left: -285px; /* Escondido a la izquierda */
     background: #000; 
     overflow-y: auto;
     transition: 0.3s ease-in-out; 
     border-right: 2px solid var(--main-red); 
     box-shadow: 10px 0 20px rgba(0,0,0,0.8);
-    display: none; /* No existe para el navegador hasta que se activa */
+    
+    visibility: hidden; 
     pointer-events: none; 
 }
 
 .side-menu.active {
-    display: block; /* Aparece */
-    left: 0; /* Desliza */
-    pointer-events: auto; /* Permite clics */
+    left: 0;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .side-menu a { padding: 15px 25px; text-decoration: none; color: var(--text-gray); display: block; border-bottom: 1px solid #111; font-weight: bold; }
@@ -101,5 +102,6 @@ main { margin-top: 80px; padding-bottom: 80px; }
 .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
 .tab-btn { flex: 1; padding: 10px; background: #222; color: #888; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 .tab-btn.active { background: var(--main-red); color: white; }
+
 
 
