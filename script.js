@@ -20,18 +20,27 @@ request.onsuccess = (e) => {
 // Función para abrir/cerrar menú SIN BLOQUEAR CLICS
 function toggleMenu() {
     const menu = document.getElementById("side-menu");
+    // Esto añade o quita la clase .active que definimos en el CSS
     menu.classList.toggle("active");
 }
 
 function mostrarSeccion(id) {
-    // Cerramos el menú siempre antes de cambiar
+    // 1. Cerramos el menú siempre antes de hacer nada
     document.getElementById("side-menu").classList.remove("active");
 
-    document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
+    // 2. Ocultamos todas las secciones
+    document.querySelectorAll('.container').forEach(s => {
+        s.style.display = 'none';
+    });
+
+    // 3. Mostramos la sección elegida
     const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
     const element = document.getElementById(target);
-    if (element) element.style.display = 'block';
+    if (element) {
+        element.style.display = 'block';
+    }
 
+    // 4. Cargamos los datos correspondientes
     if (id === 'seccion-directores') generarPersonas('director');
     if (id === 'seccion-actores') generarPersonas('actor');
     if (id === 'pantalla-estadisticas') abrirEstadisticas();
@@ -260,6 +269,7 @@ function importarDatos(f) {
     };
     r.readAsText(f.files[0]);
 }
+
 
 
 
