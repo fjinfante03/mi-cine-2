@@ -15,32 +15,23 @@ request.onsuccess = (e) => { db = e.target.result; cargarPeliculas(); };
 
 function toggleMenu() {
     const menu = document.getElementById("side-menu");
-    
-    if (menu.style.width === "280px") {
-        menu.style.width = "0";
-    } else {
-        menu.style.width = "280px";
-    }
+    // Alternamos la clase active
+    menu.classList.toggle("active");
 }
 
-// Cierra el menú automáticamente al hacer clic en un enlace
-function mostrarSeccion(id) {
-    // ... tu lógica anterior para mostrar secciones ...
-    
-    // Al final de la función, forzamos el cierre:
-    document.getElementById("side-menu").style.width = "0";
-}
-
+// También actualiza mostrarSeccion para que lo cierre siempre
 function mostrarSeccion(id) {
     document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
     const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
     document.getElementById(target).style.display = 'block';
+    
+    // Cierre forzado del menú
+    document.getElementById("side-menu").classList.remove("active");
+    
     if (id === 'seccion-directores') generarPersonas('director');
     if (id === 'seccion-actores') generarPersonas('actor');
     if (id === 'pantalla-estadisticas') abrirEstadisticas();
     if (id === 'listado') cargarPeliculas();
-    const m = document.getElementById("side-menu");
-    if(m.style.width === "250px") toggleMenu();
 }
 
 function irAListadoEspecial(estado) {
@@ -307,6 +298,7 @@ function importarDatos(f) {
 }
 
 function cambiarTab(t) { currentTab = t; cargarPeliculas(); }
+
 
 
 
