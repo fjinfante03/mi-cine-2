@@ -33,3 +33,4 @@ main { margin-top: 70px; }
 .persona-img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--main-red); }
 .persona-pelis { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
 .mini-portada { width: 65px; height: 95px; border-radius: 6px; flex-shrink: 0; object-fit: cover; }
+.chart-container { height: 320px; width: 100% margin-top: 10px; }
