@@ -14,8 +14,21 @@ request.onupgradeneeded = (e) => {
 request.onsuccess = (e) => { db = e.target.result; cargarPeliculas(); };
 
 function toggleMenu() {
-    const m = document.getElementById("side-menu");
-    m.style.width = m.style.width === "250px" ? "0" : "250px";
+    const menu = document.getElementById("side-menu");
+    
+    if (menu.style.width === "280px") {
+        menu.style.width = "0";
+    } else {
+        menu.style.width = "280px";
+    }
+}
+
+// Cierra el menú automáticamente al hacer clic en un enlace
+function mostrarSeccion(id) {
+    // ... tu lógica anterior para mostrar secciones ...
+    
+    // Al final de la función, forzamos el cierre:
+    document.getElementById("side-menu").style.width = "0";
 }
 
 function mostrarSeccion(id) {
@@ -239,6 +252,7 @@ function importarDatos(f) {
 }
 
 function cambiarTab(t) { currentTab = t; cargarPeliculas(); }
+
 
 
 
