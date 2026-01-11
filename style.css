@@ -28,23 +28,28 @@ header {
 
 .side-menu { 
     height: 100%; 
-    width: 0; /* Empieza cerrada */
+    width: 0; 
     position: fixed; 
-    z-index: 9999; /* El número más alto para que nada la tape */
+    z-index: 9999; 
     top: 0; 
     left: 0; 
     background: #000; 
     overflow-x: hidden; 
-    transition: 0.4s ease-in-out; /* Animación más suave */
-    border-right: 2px solid var(--main-red); /* Borde rojo para que se note al abrirse */
+    transition: 0.4s ease-in-out; 
+    border-right: 0px solid var(--main-red); 
     box-shadow: 10px 0 20px rgba(0,0,0,0.8);
+    
+    /* ESTO ES LO QUE ARREGLA EL CLICK */
+    visibility: hidden; 
+    pointer-events: none; 
 }
 
-/* Estilo para los enlaces dentro del menú */
-.side-menu a {
-    white-space: nowrap; /* Evita que el texto se rompa mientras se abre */
-    font-weight: bold;
-    border-bottom: 1px solid #111;
+/* Añade esta nueva regla para cuando el menú se abra */
+.side-menu.active {
+    width: 280px;
+    visibility: visible;
+    pointer-events: auto;
+    border-right: 2px solid var(--main-red);
 }
 
 /* Layout */
@@ -97,3 +102,4 @@ main { margin-top: 75px; }
     width: 100%;
     min-height: 200px; /* Evita colapsos visuales */
 }
+
