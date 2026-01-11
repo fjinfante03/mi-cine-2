@@ -19,12 +19,33 @@ header {
 }
 
 /* Menú Lateral */
-.side-menu { 
-    height: 100%; width: 0; position: fixed; z-index: 2000; top: 0; left: 0; 
-    background: #000; overflow-x: hidden; transition: 0.3s; padding-top: 20px; border-right: 1px solid #222; 
+/* Asegura que el icono del menú sea visible y grande */
+.menu-icon {
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1001; /* Por encima del header */
 }
-.side-menu a { padding: 15px 25px; text-decoration: none; color: var(--text-gray); display: block; }
-.side-menu hr { border: 0; border-top: 1px solid #222; margin: 10px 20px; }
+
+.side-menu { 
+    height: 100%; 
+    width: 0; /* Empieza cerrada */
+    position: fixed; 
+    z-index: 9999; /* El número más alto para que nada la tape */
+    top: 0; 
+    left: 0; 
+    background: #000; 
+    overflow-x: hidden; 
+    transition: 0.4s ease-in-out; /* Animación más suave */
+    border-right: 2px solid var(--main-red); /* Borde rojo para que se note al abrirse */
+    box-shadow: 10px 0 20px rgba(0,0,0,0.8);
+}
+
+/* Estilo para los enlaces dentro del menú */
+.side-menu a {
+    white-space: nowrap; /* Evita que el texto se rompa mientras se abre */
+    font-weight: bold;
+    border-bottom: 1px solid #111;
+}
 
 /* Layout */
 main { margin-top: 75px; }
@@ -67,3 +88,4 @@ main { margin-top: 75px; }
 .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
 .tab-btn { flex: 1; padding: 10px; background: #222; color: #888; border: none; border-radius: 8px; cursor: pointer; }
 .tab-btn.active { background: var(--main-red); color: white; }
+
