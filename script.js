@@ -98,26 +98,59 @@ function validarYGuardar(estado) {
 function cargarPeliculas() {
     const lista = document.getElementById('lista-peliculas');
     const busqueda = document.getElementById('buscador').value.toLowerCase();
+    const criterioOrden = document.getElementById('ordenar-por').value;
     
-    // 1. Limpieza inmediata al llamar a la función
     lista.innerHTML = ""; 
 
-    if (!db) return; // Seguridad si la DB no ha cargado
+    if (!db) return;
 
-    const transaction = db.transaction("peliculas", "readonly");
-    const store = transaction.objectStore("peliculas");
-
-    store.getAll().onsuccess = (e) => {
-        const todas = e.target.result;
+    db.transaction("peliculas", "readonly").objectStore("peliculas").getAll().onsuccess = (e) => {
+        let pelis = e.target.result;
         
-        // 2. Segunda limpieza por seguridad justo antes de pintar
-        lista.innerHTML = ""; 
-
-        const filtradas = todas.filter(p => {
+        // 1. Filtrado (por estado y búsqueda)
+        pelis = pelis.filter(p => {
             const coincideTab = (currentTab === 'todas' || p.estado === currentTab);
             const coincideBusqueda = p.titulo.toLowerCase().includes(busqueda);
             return coincideTab && coincideBusqueda;
         });
+
+        // 2. Ordenación según el selector
+        pelis.sort((a, b) => {
+            if (criterioOrden === 'alfabetico') {
+                return a.titulo.localeCompare(b.titulo);
+            } else if (criterioOrden === 'anio-estreno') {
+                return (b.anio || 0) - (a.anio || 0);
+            } else if (criterioOrden === 'nota-top') {
+                return (b.nota || 0) - (a.nota || 0);
+            } else { // 'fecha-reciente' (por defecto usa el ID autoincremental de IndexedDB)
+                return b.id - a.id;
+            }
+        });
+
+        // 3. Pintado (Limpio y sin duplicados)
+        lista.innerHTML = ""; 
+        pelis.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'card-peli';
+            div.innerHTML = `
+                <div style="position:relative;">
+                    <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
+                    <div style="position:absolute; top:8px; right:8px;">
+                        ${p.estado === 'vista' ? `<div class="nota-badge">⭐ ${p.nota}</div>` : ''}
+                    </div>
+                </div>
+                <div style="padding:10px;">
+                    <h4 style="margin:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
+                    <p style="font-size:10px; color:#888; margin-top:4px;">${p.anio || '----'} | ${p.nacionalidad || '---'}</p>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; cursor:pointer;">✏️</button>
+                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; cursor:pointer;">🗑️</button>
+                    </div>
+                </div>`;
+            lista.appendChild(div);
+        });
+    };
+}
 
         // 3. Pintamos solo los resultados únicos
         filtradas.forEach(p => {
@@ -274,6 +307,7 @@ function importarDatos(f) {
 }
 
 function cambiarTab(t) { currentTab = t; cargarPeliculas(); }
+
 
 
 
