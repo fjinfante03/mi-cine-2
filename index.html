@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Ultra v10</title>
+    <title>CinePro Ultra</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -20,7 +20,10 @@
     </header>
 
     <nav id="side-menu" class="side-menu">
-        <div class="menu-header"><h2>Menú</h2><span onclick="toggleMenu()" style="cursor:pointer; font-size:30px;">&times;</span></div>
+        <div class="menu-header">
+            <h2>Menú</h2>
+            <span onclick="toggleMenu()" style="cursor:pointer; font-size:30px;">&times;</span>
+        </div>
         <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
         <a href="#" onclick="irAListadoEspecial('vista')">🎬 Pelis Vistas</a>
         <a href="#" onclick="irAListadoEspecial('pendiente')">⏳ Pelis Pendientes</a>
@@ -40,10 +43,10 @@
 
         <section id="seccion-inicio" class="container">
             <div class="welcome-card">
-                <h2>Bienvenido</h2>
-                <p>Gestiona tu colección personal de cine y series.</p>
+                <h2>Tu Videoteca</h2>
+                <p>Gestiona tus películas, actores y directores favoritos.</p>
             </div>
-            <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Nueva Película</button>
+            <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Añadir Película</button>
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
@@ -74,9 +77,7 @@
                             <option value="Drama">Drama</option>
                             <option value="Terror">Terror</option>
                             <option value="Ciencia Ficción">Ciencia Ficción</option>
-                            <option value="Amor">Amor</option>
-                            <option value="Thriller">Thriller</option>
-                            <option value="Intriga">Intriga</option>
+                            <option value="Animación">Animación</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -117,29 +118,29 @@
             </div>
             <div class="input-group">
                 <select id="ordenar-por" class="custom-select" onchange="cargarPeliculas()">
-                    <option value="reciente">Añadidas recientemente</option>
-                    <option value="alfabetico">Orden Alfabético</option>
-                    <option value="nota-top">Mejores Notas</option>
+                    <option value="reciente">Recientes</option>
+                    <option value="alfabetico">A-Z</option>
+                    <option value="nota-top">Mejor Nota</option>
                 </select>
             </div>
             <div id="lista-peliculas" class="grid-peliculas"></div>
         </section>
 
-        <section id="seccion-directores" class="container" style="display:none;"><h2>Ranking Directores (Vistas)</h2><div id="lista-directores"></div></section>
-        <section id="seccion-actores" class="container" style="display:none;"><h2>Ranking Actores (Vistas)</h2><div id="lista-actores"></div></section>
+        <section id="seccion-directores" class="container" style="display:none;"><h2>Directores Vistos</h2><div id="lista-directores"></div></section>
+        <section id="seccion-actores" class="container" style="display:none;"><h2>Actores Vistos</h2><div id="lista-actores"></div></section>
 
         <section id="pantalla-estadisticas" class="container" style="display:none;">
-            <h2>Estadísticas Pro</h2>
+            <h2>Estadísticas</h2>
             <div id="stats-content"></div>
-            <div class="persona-card"><h3>Tiempo por Género</h3><div class="chart-container"><canvas id="graficoGeneros"></canvas></div></div>
+            <div class="persona-card"><h3>Por Género</h3><div class="chart-container"><canvas id="graficoGeneros"></canvas></div></div>
             <div class="persona-card"><h3>Por Países</h3><div class="chart-container"><canvas id="graficoPaises"></canvas></div></div>
             <div class="persona-card"><h3>Por Décadas</h3><div class="chart-container"><canvas id="graficoDecadas"></canvas></div></div>
         </section>
 
         <section id="seccion-ajustes" class="container" style="display:none;">
-            <h2>Configuración</h2>
-            <button onclick="exportarDatos()" class="btn-save" style="background:#444;">💾 EXPORTAR DATOS</button>
-            <button onclick="document.getElementById('import-file').click()" class="btn-save" style="background:#444;">📂 IMPORTAR DATOS</button>
+            <h2>Ajustes</h2>
+            <button onclick="exportarDatos()" class="btn-save" style="background:#444;">💾 EXPORTAR COPIA</button>
+            <button onclick="document.getElementById('import-file').click()" class="btn-save" style="background:#444;">📂 IMPORTAR COPIA</button>
             <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
         </section>
     </main>
@@ -150,12 +151,6 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 
