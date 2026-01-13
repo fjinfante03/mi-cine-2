@@ -2,7 +2,8 @@ let db;
 let currentTab = 'todas';
 let chartGen, chartPais, chartDec;
 
-const request = indexedDB.open("CineTrackDB", 11);
+// IndexedDB
+const request = indexedDB.open("CineTrackDB", 15);
 request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("peliculas")) {
@@ -21,8 +22,9 @@ function mostrarSeccion(id) {
     const sectionsWithSearch = ['seccion-listado', 'seccion-directores', 'seccion-actores'];
     busquedaUI.style.display = sectionsWithSearch.includes(id) ? 'block' : 'none';
 
-    const target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
-    document.getElementById(target).style.display = 'block';
+    const target = (id === 'inicio' || id === 'listado') ? 'seccion-' + id : id;
+    const el = document.getElementById(target);
+    if(el) el.style.display = 'block';
 
     if (id === 'seccion-directores') generarPersonas('director');
     if (id === 'seccion-actores') generarPersonas('actor');
@@ -58,12 +60,17 @@ function validarYGuardar(estado) {
         estado: estado
     };
 
-    if (!peli.titulo) return alert("Título obligatorio");
+    if (!peli.titulo) return alert("El título es necesario");
 
     const tx = db.transaction("peliculas", "readwrite");
     const store = tx.objectStore("peliculas");
-    if (idInput.value) { peli.id = parseInt(idInput.value); store.put(peli); } 
-    else { store.add(peli); }
+    
+    if (idInput.value) { 
+        peli.id = parseInt(idInput.value); 
+        store.put(peli); 
+    } else { 
+        store.add(peli); 
+    }
 
     tx.oncomplete = () => {
         document.getElementById('form-pelicula').reset();
@@ -82,7 +89,11 @@ function cargarPeliculas(filtro = "") {
         let pelis = e.target.result.filter(p => (currentTab === 'todas' || p.estado === currentTab));
         
         if (filtro) {
-            pelis = pelis.filter(p => p.titulo.toLowerCase().includes(filtro) || (p.nombreDirector || "").toLowerCase().includes(filtro));
+            pelis = pelis.filter(p => 
+                p.titulo.toLowerCase().includes(filtro) || 
+                (p.nombreDirector || "").toLowerCase().includes(filtro) ||
+                (p.reparto ? p.reparto.some(a => a.nombre.toLowerCase().includes(filtro)) : false)
+            );
         }
 
         pelis.sort((a, b) => {
@@ -92,14 +103,14 @@ function cargarPeliculas(filtro = "") {
         });
 
         pelis.forEach(p => {
-            let colorPlat = "#444";
+            let colorPlat = "#333";
             const plat = (p.plataforma || "").toLowerCase();
             if (plat.includes("netflix")) colorPlat = "#E50914";
             else if (plat.includes("prime")) colorPlat = "#00A8E1";
             else if (plat.includes("disney")) colorPlat = "#0063BE";
             else if (plat.includes("hbo")) colorPlat = "#5822b4";
 
-            const tag = p.estado === 'pendiente' ? `<div class="plataforma-tag" style="background:${colorPlat}">${p.plataforma}</div>` : '';
+            const tag = p.estado === 'pendiente' ? `<div class="plataforma-tag" style="background:${colorPlat}">📺 ${p.plataforma}</div>` : '';
 
             const div = document.createElement('div');
             div.className = 'card-peli';
@@ -109,12 +120,12 @@ function cargarPeliculas(filtro = "") {
                     ${p.estado === 'vista' ? `<div class="nota-badge">⭐ ${p.nota}</div>` : ''}
                 </div>
                 <div style="padding:10px;">
-                    <h4 style="margin:0; font-size:13px;">${p.titulo}</h4>
-                    <p style="font-size:10px; color:#888;">${p.anio} | ${p.nacionalidad}</p>
+                    <h4 style="margin:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
+                    <p style="font-size:10px; color:#888;">${p.anio || '---'} | ${p.nacionalidad || '---'}</p>
                     ${tag}
                     <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan;">✏️</button>
-                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red;">🗑️</button>
+                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
+                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
                     </div>
                 </div>`;
             lista.appendChild(div);
@@ -128,27 +139,91 @@ function generarPersonas(tipo, filtro = "") {
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         let mapa = {};
         const vistas = e.target.result.filter(p => p.estado === 'vista');
+        
         vistas.forEach(p => {
             const keys = (tipo === 'director') ? [p.nombreDirector] : (p.reparto ? p.reparto.map(a => a.nombre) : []);
             keys.forEach(nombre => {
-                if (!nombre || (filtro && !nombre.toLowerCase().includes(filtro))) return;
-                if (!mapa[nombre]) mapa[nombre] = { nombre, foto: (tipo === 'director' ? p.fotoDirector : p.reparto.find(x => x.nombre === nombre).foto), pelis: [] };
+                if (!nombre) return;
+                if (filtro && !nombre.toLowerCase().includes(filtro)) return;
+
+                if (!mapa[nombre]) {
+                    mapa[nombre] = { 
+                        nombre, 
+                        foto: (tipo === 'director' ? p.fotoDirector : p.reparto.find(x => x.nombre === nombre).foto), 
+                        pelis: [] 
+                    };
+                }
                 if (!mapa[nombre].pelis.find(m => m.id === p.id)) mapa[nombre].pelis.push(p);
             });
         });
+
         Object.values(mapa).sort((a,b) => b.pelis.length - a.pelis.length).forEach(per => {
             const div = document.createElement('div');
             div.className = 'persona-card';
-            div.innerHTML = `<div class="persona-header"><img src="${per.foto || 'https://via.placeholder.com/60'}" class="persona-img"><div><h3>${per.nombre}</h3><p>${per.pelis.length} vistas</p></div></div><div class="persona-pelis">${per.pelis.map(p => `<img src="${p.fotoPortada}" class="mini-portada">`).join('')}</div>`;
+            div.innerHTML = `
+                <div class="persona-header">
+                    <img src="${per.foto || 'https://via.placeholder.com/60'}" class="persona-img">
+                    <div><h3 style="margin:0;">${per.nombre}</h3><p style="margin:0; font-size:11px; color:#888;">${per.pelis.length} películas vistas</p></div>
+                </div>
+                <div class="persona-pelis">${per.pelis.map(p => `<img src="${p.fotoPortada}" class="mini-portada" onclick="ampliar('${p.fotoPortada}')">`).join('')}</div>`;
             contenedor.appendChild(div);
         });
     };
 }
 
+function abrirEstadisticas() {
+    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
+        const todas = e.target.result;
+        const vistas = todas.filter(x => x.estado === 'vista');
+        const minsTotal = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
+        
+        document.getElementById('stats-content').innerHTML = `
+            <div class="persona-card" style="text-align:center; border-top:4px solid var(--main-red);">
+                <h1 style="font-size:40px; margin:0; color:var(--main-red);">${vistas.length}</h1>
+                <p style="margin:0; color:#888;">PELÍCULAS VISTAS</p>
+                <h2 style="margin-top:10px;">${Math.floor(minsTotal/60)}h ${minsTotal%60}min</h2>
+                <p style="font-size:11px; color:#555;">TIEMPO TOTAL</p>
+            </div>`;
+
+        const genMap = {}, paisMap = {}, decMap = {};
+        vistas.forEach(p => {
+            if (p.genero) genMap[p.genero] = (genMap[p.genero] || 0) + 1;
+            if (p.nacionalidad) paisMap[p.nacionalidad] = (paisMap[p.nacionalidad] || 0) + 1;
+            if (p.anio) {
+                const dec = Math.floor(p.anio / 10) * 10 + "s";
+                decMap[dec] = (decMap[dec] || 0) + 1;
+            }
+        });
+
+        setTimeout(() => {
+            chartGen = renderGrafico('graficoGeneros', 'doughnut', genMap, 'Géneros', chartGen);
+            chartPais = renderGrafico('graficoPaises', 'bar', paisMap, 'Países', chartPais);
+            chartDec = renderGrafico('graficoDecadas', 'line', decMap, 'Décadas', chartDec);
+        }, 200);
+    };
+}
+
+function renderGrafico(id, tipo, data, label, chartVar) {
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    if (chartVar) chartVar.destroy();
+    return new Chart(ctx, {
+        type: tipo,
+        data: {
+            labels: Object.keys(data),
+            datasets: [{ label: label, data: Object.values(data), backgroundColor: ['#e50914', '#00A8E1', '#ffc107', '#28a745', '#5822b4'], borderColor: tipo === 'line' ? '#ffc107' : 'transparent' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: tipo !== 'doughnut' ? { y: { ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } } : {} }
+    });
+}
+
 function agregarCampoActor(nombre = "", foto = "") {
     const div = document.createElement('div');
     div.className = "actor-card-form";
-    div.innerHTML = `<input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}"><input type="text" placeholder="URL Foto" class="foto-actor" value="${foto}" style="margin-top:5px; width:100%;"><button type="button" onclick="this.parentElement.remove()" style="color:red; background:none; border:none; width:100%; text-align:right;">✕</button>`;
+    div.innerHTML = `
+        <input type="text" placeholder="Nombre Actor" class="nombre-actor" value="${nombre}" style="width:100%; padding:8px; background:#111; color:white; border:1px solid #333; border-radius:5px;">
+        <input type="text" placeholder="URL Foto" class="foto-actor" value="${foto}" style="width:100%; padding:8px; background:#111; color:white; border:1px solid #333; border-radius:5px; margin-top:5px;">
+        <button type="button" onclick="this.parentElement.remove()" style="color:red; background:none; border:none; width:100%; text-align:right; margin-top:5px; cursor:pointer;">✕ Quitar</button>`;
     document.getElementById('contenedor-actores').appendChild(div);
 }
 
@@ -173,94 +248,26 @@ function editar(id) {
     };
 }
 
-function eliminar(id) { if(confirm("¿Borrar?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => window.location.reload(); }
+function eliminar(id) { if(confirm("¿Eliminar película?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => cargarPeliculas(); }
 function ampliar(s) { document.getElementById('modal-img').style.display='flex'; document.getElementById('img-ampliada').src=s; }
 function cambiarTab(t) { currentTab = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); cargarPeliculas(); }
 function irAListadoEspecial(e) { currentTab = e; mostrarSeccion('listado'); cambiarTab(e); }
 
-function abrirEstadisticas() {
-    if (!db) return;
-
-    const tx = db.transaction("peliculas", "readonly");
-    const store = tx.objectStore("peliculas");
-
-    store.getAll().onsuccess = (e) => {
-        const todas = e.target.result;
-        const vistas = todas.filter(x => x.estado === 'vista');
-        
-        // Calcular tiempo total
-        const minsTotal = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
-        const horas = Math.floor(minsTotal / 60);
-        const minsRestantes = minsTotal % 60;
-
-        // Renderizar el resumen en el HTML
-        const statsContent = document.getElementById('stats-content');
-        statsContent.innerHTML = `
-            <div class="persona-card" style="text-align:center; border-bottom: 3px solid var(--main-red);">
-                <h1 style="font-size:40px; margin:0; color:var(--main-red);">${vistas.length}</h1>
-                <p style="margin:0; color:#888; text-transform:uppercase; font-size:12px;">Películas Vistas</p>
-                <div style="margin-top:15px;">
-                    <span style="font-size:20px; font-weight:bold;">${horas}h ${minsRestantes}min</span>
-                    <p style="margin:0; color:#555; font-size:11px;">Tiempo Total</p>
-                </div>
-            </div>`;
-
-        // Procesar datos para las gráficas
-        const dataGeneros = {};
-        const dataPaises = {};
-        const dataDecadas = {};
-
-        vistas.forEach(p => {
-            if (p.genero) dataGeneros[p.genero] = (dataGeneros[p.genero] || 0) + 1;
-            if (p.nacionalidad) dataPaises[p.nacionalidad] = (dataPaises[p.nacionalidad] || 0) + 1;
-            if (p.anio) {
-                const dec = Math.floor(p.anio / 10) * 10 + "s";
-                dataDecadas[dec] = (dataDecadas[dec] || 0) + 1;
-            }
-        });
-
-        // Crear las gráficas (usando un pequeño delay para asegurar que el DOM esté listo)
-        setTimeout(() => {
-            renderChart('graficoGeneros', 'doughnut', dataGeneros, 'Géneros');
-            renderChart('graficoPaises', 'bar', dataPaises, 'Países');
-            renderChart('graficoDecadas', 'line', dataDecadas, 'Décadas');
-        }, 100);
+function exportarDatos() {
+    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
+        const blob = new Blob([JSON.stringify(e.target.result)], { type: "application/json" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "mi_cine_backup.json"; a.click();
     };
 }
-
-// Función auxiliar para no repetir código de creación de gráficos
-function renderChart(canvasId, type, dataMap, label) {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
-
-    // Destruir gráfico previo si existe para evitar errores de hover
-    const existingChart = Chart.getChart(canvasId);
-    if (existingChart) existingChart.destroy();
-
-    new Chart(ctx, {
-        type: type,
-        data: {
-            labels: Object.keys(dataMap),
-            datasets: [{
-                label: label,
-                data: Object.values(dataMap),
-                backgroundColor: ['#e50914', '#00A8E1', '#ffc107', '#28a745', '#5822b4', '#ef8354'],
-                borderColor: type === 'line' ? '#ffc107' : 'transparent',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { labels: { color: '#fff', font: { size: 10 } } }
-            },
-            scales: type !== 'doughnut' ? {
-                y: { ticks: { color: '#888' }, grid: { color: '#222' } },
-                x: { ticks: { color: '#888' }, grid: { display: false } }
-            } : {}
-        }
-    });
+function importarDatos(f) {
+    const r = new FileReader();
+    r.onload = (e) => {
+        const data = JSON.parse(e.target.result);
+        const tx = db.transaction("peliculas", "readwrite");
+        data.forEach(p => tx.objectStore("peliculas").put(p));
+        tx.oncomplete = () => window.location.reload();
+    };
+    r.readAsText(f.files[0]);
 }
 
 
