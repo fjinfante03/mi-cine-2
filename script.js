@@ -259,16 +259,56 @@ function exportarDatos() {
         const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "mi_cine_backup.json"; a.click();
     };
 }
-function importarDatos(f) {
-    const r = new FileReader();
-    r.onload = (e) => {
-        const data = JSON.parse(e.target.result);
-        const tx = db.transaction("peliculas", "readwrite");
-        data.forEach(p => tx.objectStore("peliculas").put(p));
-        tx.oncomplete = () => window.location.reload();
+function importarDatos(input) {
+    const archivo = input.files[0];
+    if (!archivo) return;
+
+    const lector = new FileReader();
+    
+    lector.onload = function(e) {
+        try {
+            const datos = JSON.parse(e.target.result);
+            
+            if (!Array.isArray(datos)) {
+                throw new Error("El archivo no tiene el formato correcto.");
+            }
+
+            // Abrimos una transacción de lectura/escritura
+            const tx = db.transaction("peliculas", "readwrite");
+            const store = tx.objectStore("peliculas");
+
+            // Limpiamos la base de datos actual antes de importar (Opcional, pero recomendado para evitar basura)
+            // store.clear(); 
+
+            datos.forEach(peli => {
+                // Eliminamos el ID si queremos que se generen nuevos o lo dejamos si queremos conservar el orden
+                // store.put(peli) actualizará si el ID existe o creará si no.
+                store.put(peli);
+            });
+
+            tx.oncomplete = function() {
+                alert("✅ ¡Importación completada con éxito! La página se recargará.");
+                window.location.reload();
+            };
+
+            tx.onerror = function(err) {
+                console.error("Error en la transacción:", err);
+                alert("❌ Error al guardar los datos en la base de datos.");
+            };
+
+        } catch (error) {
+            console.error("Error al importar:", error);
+            alert("❌ El archivo no es un backup válido o está dañado.");
+        }
     };
-    r.readAsText(f.files[0]);
+
+    lector.onerror = function() {
+        alert("❌ No se pudo leer el archivo.");
+    };
+
+    lector.readAsText(archivo);
 }
+
 
 
 
