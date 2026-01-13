@@ -3,134 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Cine Fix</title>
+    <title>Mi Cine - Final Fix</title>
     <style>
-        body { background: #000; color: white; font-family: sans-serif; margin: 0; }
-        header { background: #111; padding: 15px; display: flex; align-items: center; border-bottom: 2px solid red; }
-        .menu-btn { font-size: 25px; color: red; cursor: pointer; margin-right: 20px; }
-        #side-menu { position: fixed; left: -260px; top: 0; width: 250px; height: 100%; background: #111; transition: 0.3s; z-index: 9999; border-right: 1px solid red; padding-top: 50px; }
-        #side-menu a { display: block; padding: 15px; color: white; text-decoration: none; border-bottom: 1px solid #222; }
-        .container { padding: 20px; display: none; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; background: #222; color: white; border: 1px solid #444; box-sizing: border-box; }
-        .btn-rojo { background: red; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; width: 100%; cursor: pointer; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .peli-card { background: #111; border: 1px solid #333; border-radius: 8px; text-align: center; font-size: 12px; padding-bottom: 10px; }
-        .peli-card img { width: 100%; border-radius: 8px 8px 0 0; }
+        body { background: #000; color: white; font-family: sans-serif; margin: 0; text-align: center; }
+        header { background: #111; padding: 15px; border-bottom: 2px solid red; display: flex; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .menu-icon { font-size: 30px; color: red; cursor: pointer; margin-right: 20px; }
+        #menu-lat { position: fixed; left: -260px; top: 0; width: 250px; height: 100%; background: #111; transition: 0.3s; z-index: 1000; border-right: 1px solid red; padding-top: 60px; }
+        #menu-lat a { display: block; padding: 15px; color: white; text-decoration: none; border-bottom: 1px solid #222; text-align: left; }
+        .seccion { padding: 20px; display: none; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; background: #222; color: white; border: 1px solid #444; font-size: 16px; }
+        .btn { background: red; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; width: 90%; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+        .card { background: #111; border: 1px solid #333; border-radius: 10px; overflow: hidden; font-size: 12px; padding-bottom: 10px; }
+        .card img { width: 100%; display: block; margin-bottom: 5px; }
+        #res-api { margin-top: 10px; }
+        .item-busqueda { background: #222; padding: 10px; margin: 5px; border-radius: 5px; cursor: pointer; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="menu-btn" onclick="toggleM()">☰</div>
-        <h2 style="margin:0; color:red;">MI CINE</h2>
+        <div class="menu-icon" onclick="verMenu()">☰</div>
+        <h2 style="color:red; margin:0; font-size: 20px;">MI CINE</h2>
     </header>
 
-    <nav id="side-menu">
-        <div onclick="toggleM()" style="text-align:right; padding:10px; color:red; font-size:30px;">×</div>
-        <a href="#" onclick="sec('inicio')">INICIO</a>
-        <a href="#" onclick="sec('add')">AÑADIR PELÍCULA</a>
-        <a href="#" onclick="sec('lista')">MI LISTA</a>
+    <nav id="menu-lat">
+        <a href="#" onclick="ir('inicio')">🏠 Inicio</a>
+        <a href="#" onclick="ir('add')">➕ Añadir Película</a>
+        <a href="#" onclick="ir('lista')">📚 Mis Películas</a>
     </nav>
 
-    <main>
-        <section id="inicio" class="container" style="display:block; text-align:center;">
-            <h1>Bienvenido</h1>
-            <button class="btn-rojo" onclick="sec('add')">EMPEZAR</button>
-        </section>
+    <section id="inicio" class="seccion" style="display:block;">
+        <h1 style="margin-top: 50px;">Bienvenido</h1>
+        <p>Tu colección personal de cine</p>
+        <button class="btn" onclick="ir('add')">EMPEZAR AHORA</button>
+    </section>
 
-        <section id="add" class="container">
-            <h3>Buscar Película</h3>
-            <input type="text" id="api-q" placeholder="Escribe el nombre...">
-            <button type="button" onclick="buscarAhora()" style="background: red !important; color: white !important; cursor: pointer; opacity: 1;">BUSCAR EN RED</button>
-            <div id="results" style="background:#111; margin-top:10px;"></div>
-            
-            <hr style="margin:20px 0; border-color:#333;">
-            <input type="text" id="tit" placeholder="Título que se guardará">
-            <input type="text" id="img" placeholder="URL de la imagen">
-            <button onclick="guardar()" style="background:green;" class="btn-rojo">GUARDAR EN MI LISTA</button>
-        </section>
+    <section id="add" class="seccion">
+        <h3>Buscador TMDb</h3>
+        <input type="text" id="bus-tit" placeholder="Escribe el título (ej: Avengers)">
+        <button type="button" class="btn" onclick="buscarPeli()">BUSCAR EN RED</button>
+        
+        <div id="res-api"></div>
+        
+        <hr style="margin:30px 0; border: 0; border-top: 1px solid #333;">
+        
+        <input type="text" id="form-tit" placeholder="Título que aparecerá">
+        <input type="text" id="form-img" placeholder="URL de la imagen">
+        <button type="button" class="btn" onclick="guardarPeli()" style="background:green;">GUARDAR EN MI LISTA</button>
+    </section>
 
-        <section id="lista" class="container">
-            <h3>Mis Películas</h3>
-            <div id="print-lista" class="grid"></div>
-        </section>
-    </main>
+    <section id="lista" class="seccion">
+        <h3>Mi Colección</h3>
+        <div id="peli-lista" class="grid"></div>
+    </section>
 
     <script>
         let db;
-        const req = indexedDB.open("CineStore", 1);
-        req.onupgradeneeded = (e) => e.target.result.createObjectStore("pelis", { keyPath: "id", autoIncrement: true });
-        req.onsuccess = (e) => { db = e.target.result; render(); };
+        // 1. Base de Datos
+        const request = indexedDB.open("CineDB_Final", 1);
+        request.onupgradeneeded = (e) => {
+            e.target.result.createObjectStore("pelis", { keyPath: "id", autoIncrement: true });
+        };
+        request.onsuccess = (e) => { 
+            db = e.target.result; 
+            mostrarPelis(); 
+        };
 
-        function toggleM() {
-            const m = document.getElementById("side-menu");
-            // Corregido para que abra y cierre siempre
-            if (m.style.left === "0px") {
-                m.style.left = "-260px";
-            } else {
-                m.style.left = "0px";
-            }
+        // 2. Navegación
+        function verMenu() {
+            const m = document.getElementById("menu-lat");
+            m.style.left = (m.style.left === "0px") ? "-260px" : "0px";
         }
 
-        function sec(id) {
-            document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
+        function ir(id) {
+            document.querySelectorAll('.seccion').forEach(s => s.style.display = 'none');
             document.getElementById(id).style.display = 'block';
-            document.getElementById("side-menu").style.left = "-260px";
+            document.getElementById("menu-lat").style.left = "-260px";
         }
 
-        // HE CAMBIADO EL NOMBRE A buscarAhora PARA QUE COINCIDA CON EL BOTÓN
-        async function buscarAhora() {
-            const q = document.getElementById('api-q').value; 
-            if(!q) return alert("Escribe algo");
+        // 3. Buscador de Películas (API)
+        async function buscarPeli() {
+            const q = document.getElementById('bus-tit').value;
+            if(!q) return alert("Escribe un nombre");
             
-            const d = document.getElementById('results');
-            d.innerHTML = "<p style='color:yellow'>Buscando...</p>";
-
+            const divRes = document.getElementById('res-api');
+            divRes.innerHTML = "<p style='color:yellow;'>Buscando...</p>";
+            
             try {
                 const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=854e46049386f788b77a1188730b200b&query=${encodeURIComponent(q)}&language=es-ES`);
                 const data = await res.json();
-                d.innerHTML = ""; 
+                
+                divRes.innerHTML = "";
+                if(!data.results || data.results.length === 0) {
+                    divRes.innerHTML = "No se encontraron resultados.";
+                    return;
+                }
 
                 data.results.slice(0, 3).forEach(p => {
-                    const item = document.createElement('div');
-                    item.style = "padding:12px; border-bottom:1px solid #333; cursor:pointer; background:#222; margin-top:5px; border-radius:5px;";
-                    item.innerHTML = `<strong>${p.title}</strong>`;
-                    item.onclick = () => {
-                        document.getElementById('tit').value = p.title;
-                        document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "";
-                        d.innerHTML = "<p style='color:green'>¡Cargado!</p>";
+                    const b = document.createElement('div');
+                    b.className = "item-busqueda";
+                    b.innerHTML = `<strong>${p.title}</strong> (${p.release_date ? p.release_date.split('-')[0] : '?'})`;
+                    b.onclick = () => {
+                        document.getElementById('form-tit').value = p.title;
+                        document.getElementById('form-img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "";
+                        divRes.innerHTML = "<p style='color:green; font-size:12px;'>¡Datos cargados abajo! ↓</p>";
                     };
-                    d.appendChild(item);
+                    divRes.appendChild(b);
                 });
-            } catch (err) { alert("Error de conexión"); }
+            } catch (e) { 
+                divRes.innerHTML = "Error de conexión.";
+            }
         }
 
-        function guardar() {
-            const t = document.getElementById('tit').value;
-            const i = document.getElementById('img').value;
-            if(!t) return alert("Faltan datos");
+        // 4. Guardar en IndexedDB
+        function guardarPeli() {
+            const t = document.getElementById('form-tit').value;
+            const i = document.getElementById('form-img').value;
+            if(!t) return alert("Primero busca y selecciona una película");
+            
             const tx = db.transaction("pelis", "readwrite");
-            tx.objectStore("pelis").add({titulo: t, imagen: i});
-            tx.oncomplete = () => {
-                alert("¡Guardado!");
-                render();
-                sec('lista');
+            tx.objectStore("pelis").add({t, i});
+            tx.oncomplete = () => { 
+                alert("¡Guardada!"); 
+                document.getElementById('form-tit').value = "";
+                document.getElementById('form-img').value = "";
+                document.getElementById('bus-tit').value = "";
+                mostrarPelis(); 
+                ir('lista'); 
             };
         }
 
-        function render() {
-            const box = document.getElementById('print-lista');
-            if(!box || !db) return;
-            box.innerHTML = "";
+        // 5. Mostrar lista guardada
+        function mostrarPelis() {
+            const lista = document.getElementById('peli-lista');
+            if(!lista || !db) return;
+            lista.innerHTML = "";
             db.transaction("pelis").objectStore("pelis").getAll().onsuccess = (e) => {
                 e.target.result.forEach(p => {
-                    box.innerHTML += `<div class="peli-card"><img src="${p.imagen}" style="width:100%"><p>${p.titulo}</p></div>`;
+                    lista.innerHTML += `
+                        <div class="card">
+                            <img src="${p.i}" onerror="this.src='https://via.placeholder.com/150x225?text=Sin+Foto'">
+                            <p style="padding: 5px;">${p.t}</p>
+                        </div>`;
                 });
             };
         }
     </script>
 </body>
 </html>
+
 
 
 
