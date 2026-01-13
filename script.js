@@ -110,20 +110,26 @@ function cargarPeliculas() {
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         let pelis = e.target.result;
         
-        // Filtro
+        // Filtro por estado y búsqueda
         pelis = pelis.filter(p => (currentTab === 'todas' || p.estado === currentTab) && p.titulo.toLowerCase().includes(busqueda));
 
-        // Orden
+        // Ordenación
         pelis.sort((a, b) => {
             if (orden === 'alfabetico') return a.titulo.localeCompare(b.titulo);
             if (orden === 'nota-top') return (b.nota || 0) - (a.nota || 0);
             return (b.id || 0) - (a.id || 0);
         });
 
-        lista.innerHTML = ""; // Limpieza final antes de pintar
+        lista.innerHTML = ""; 
         pelis.forEach(p => {
             const div = document.createElement('div');
             div.className = 'card-peli';
+
+            // Lógica para mostrar la plataforma solo en pendientes
+            const infoPlataforma = (p.estado === 'pendiente') 
+                ? `<div class="plataforma-tag">📺 ${p.plataforma}</div>` 
+                : '';
+
             div.innerHTML = `
                 <div style="position:relative;">
                     <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
@@ -132,6 +138,9 @@ function cargarPeliculas() {
                 <div style="padding:10px;">
                     <h4 style="margin:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
                     <p style="font-size:10px; color:#888; margin-top:4px;">${p.anio || '---'} | ${p.nacionalidad || '---'}</p>
+                    
+                    ${infoPlataforma}
+
                     <div style="display:flex; justify-content:space-between; margin-top:8px;">
                         <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; cursor:pointer;">✏️</button>
                         <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; cursor:pointer;">🗑️</button>
@@ -303,6 +312,7 @@ function importarDatos(f) {
     };
     r.readAsText(f.files[0]);
 }
+
 
 
 
