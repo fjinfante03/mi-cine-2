@@ -2,109 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Ultra</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Mi Filmoteca Personal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <header>
-        <div class="menu-icon" onclick="toggleMenu()" style="cursor:pointer; font-size:25px;">☰</div>
-        <h1 onclick="mostrarSeccion('inicio')" style="cursor:pointer">MI CINE</h1>
-        <div style="width: 25px;"></div>
+        <h1>Mis Pelis & Estadísticas</h1>
+        <div class="search-container">
+            <input type="text" id="movieSearch" placeholder="Busca una peli para añadir...">
+            <button onclick="searchMovie()">Buscar</button>
+        </div>
     </header>
 
-    <nav id="side-menu" class="side-menu">
-        <div class="menu-header">
-            <h2>Menú</h2>
-            <span onclick="toggleMenu()" style="cursor:pointer; font-size:30px;">&times;</span>
-        </div>
-        <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
-        <a href="#" onclick="irAListadoEspecial('vista')">🎬 Pelis Vistas</a>
-        <a href="#" onclick="irAListadoEspecial('pendiente')">⏳ Pelis Pendientes</a>
-        <a href="#" onclick="mostrarSeccion('listado')">📚 Toda la Biblioteca</a>
-        <hr>
-        <a href="#" onclick="mostrarSeccion('seccion-directores')">👤 Directores</a>
-        <a href="#" onclick="mostrarSeccion('seccion-actores')">🎭 Actores</a>
-        <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
-        <a href="#" onclick="mostrarSeccion('pantalla-estadisticas')">📊 Estadísticas</a>
-    </nav>
+    <main id="movieGrid">
+        </main>
 
-    <main>
-        <div class="search-container" id="contenedor-busqueda" style="display:none; padding: 0 15px;">
-            <input type="text" id="buscador" placeholder="🔍 Buscar..." oninput="ejecutarBusqueda()">
-        </div>
+    <section id="stats">
+        <h2>Mis Estadísticas</h2>
+        <div id="statsContent"></div>
+    </section>
 
-        <section id="seccion-inicio" class="container">
-            <div class="welcome-card" style="background:var(--card-bg); padding:20px; border-radius:15px; text-align:center;">
-                <h2>¡Bienvenido!</h2>
-                <p>Gestiona tu colección personal de cine.</p>
-                <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Añadir Mi Primera Película</button>
-            </div>
-        </section>
-
-        <section id="nueva-peli" class="container" style="display:none;">
-            <h2>Nueva Película</h2>
-            <form id="form-pelicula">
-                <input type="hidden" id="edit-id">
-                <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
-                <div class="grid-2">
-                    <div class="input-group"><label>Director</label><input type="text" id="nombreDirector"></div>
-                    <div class="input-group"><label>URL Foto Dir.</label><input type="text" id="fotoDirector"></div>
-                </div>
-                <div class="input-group">
-                    <label>Reparto</label>
-                    <div id="contenedor-actores"></div>
-                    <button type="button" onclick="agregarCampoActor()" class="btn-add-actor">+ Añadir Actor</button>
-                </div>
-                <div class="input-group"><label>Portada (URL)</label><input type="text" id="fotoPortada"></div>
-                <div class="grid-2">
-                    <div class="input-group"><label>Género</label><select id="genero" class="custom-select"><option value="Acción">Acción</option><option value="Drama">Drama</option><option value="Comedia">Comedia</option><option value="Terror">Terror</option><option value="Ciencia Ficción">Ciencia Ficción</option></select></div>
-                    <div class="input-group"><label>Plataforma</label><select id="plataforma" class="custom-select"><option value="Netflix">Netflix</option><option value="Prime Video">Prime Video</option><option value="Disney+">Disney+</option><option value="HBO Max">HBO Max</option><option value="Cine">Cine / Otro</option></select></div>
-                </div>
-                <div class="grid-3">
-                    <div class="input-group"><label>Año</label><input type="number" id="anio"></div>
-                    <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1"></div>
-                    <div class="input-group"><label>Minutos</label><input type="number" id="duracion"></div>
-                </div>
-                <div class="grid-2">
-                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">VISTA</button>
-                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">PENDIENTE</button>
-                </div>
-            </form>
-        </section>
-
-        <section id="seccion-listado" class="container" style="display:none;">
-            <div class="tabs">
-                <button id="tab-todas" class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
-                <button id="tab-vista" class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
-                <button id="tab-pendiente" class="tab-btn" onclick="cambiarTab('pendiente')">Pendientes</button>
-            </div>
-            <div class="input-group">
-                <select id="ordenar-por" class="custom-select" onchange="cargarPeliculas()">
-                    <option value="reciente">Recientes</option>
-                    <option value="alfabetico">A-Z</option>
-                </select>
-            </div>
-            <div id="lista-peliculas" class="grid-peliculas"></div>
-        </section>
-
-        <section id="seccion-directores" class="container" style="display:none;"><h2>Directores</h2><div id="lista-directores"></div></section>
-        <section id="seccion-actores" class="container" style="display:none;"><h2>Actores</h2><div id="lista-actores"></div></section>
-
-        <section id="pantalla-estadisticas" class="container" style="display:none;">
-            <h2>Estadísticas</h2>
-            <div id="stats-content"></div>
-            <div class="persona-card"><h3>Géneros</h3><div class="chart-container"><canvas id="graficoGeneros"></canvas></div></div>
-            <div class="persona-card"><h3>Países</h3><div class="chart-container"><canvas id="graficoPaises"></canvas></div></div>
-        </section>
-    </main>
-
-    <div id="modal-img" class="modal" onclick="this.style.display='none'"><img id="img-ampliada"></div>
-    <script src="script.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
