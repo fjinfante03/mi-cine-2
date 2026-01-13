@@ -110,7 +110,8 @@
                     // Al hacer clic, se rellenan los campos de abajo
                     btn.onclick = () => {
                         document.getElementById('tit').value = p.title;
-                        document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "";
+                        // Busca esta línea y déjala así:
+                        document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "https://via.placeholder.com/500x750?text=Sin+Portada";
                         d.style.display = "none";
                     };
                     d.appendChild(btn);
@@ -145,6 +146,7 @@
     </script>
 </body>
 </html>
+
 
 
 
