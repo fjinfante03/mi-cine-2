@@ -2,51 +2,126 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Cine Pro</title>
-    <link rel="stylesheet" href="style.css?v=30">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cine Fix</title>
+    <style>
+        /* CSS INTEGRADO PARA EVITAR ERRORES DE CARGA */
+        body { background: #000; color: white; font-family: sans-serif; margin: 0; }
+        header { background: #111; padding: 15px; display: flex; align-items: center; border-bottom: 2px solid red; }
+        .menu-btn { font-size: 25px; color: red; cursor: pointer; margin-right: 20px; border: 1px solid red; padding: 5px 10px; border-radius: 5px; }
+        
+        #side-menu { position: fixed; left: -260px; top: 0; width: 250px; height: 100%; background: #111; transition: 0.3s; z-index: 9999; border-right: 2px solid red; padding-top: 50px; }
+        #side-menu a { display: block; padding: 15px; color: white; text-decoration: none; border-bottom: 1px solid #222; font-weight: bold; }
+        
+        .container { padding: 20px; display: none; }
+        #inicio { display: block; text-align: center; }
+        
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; background: #222; color: white; border: 1px solid #444; box-sizing: border-box; }
+        button { background: red; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; width: 100%; margin-top: 10px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .peli-card { background: #111; border: 1px solid #333; border-radius: 8px; text-align: center; font-size: 12px; padding-bottom: 10px; }
+        .peli-card img { width: 100%; border-radius: 8px 8px 0 0; }
+    </style>
 </head>
 <body>
 
     <header>
-        <div class="menu-icon" onclick="toggleMenu()" style="cursor:pointer; font-size:30px; padding:10px;">☰</div>
-        <h1 onclick="mostrarSeccion('inicio')">MI CINE</h1>
+        <div class="menu-btn" onclick="toggleM()">☰</div>
+        <h2 style="margin:0; color:red;">MI CINE</h2>
     </header>
 
-    <nav id="side-menu" class="side-menu" style="position:fixed; left:-250px; transition:0.3s; background:#111; height:100%; width:250px; z-index:1000; padding:20px;">
-        <h2 style="color:white;">Menú</h2>
-        <a href="#" onclick="mostrarSeccion('inicio')" style="display:block; color:white; padding:10px 0;">🏠 Inicio</a>
-        <a href="#" onclick="mostrarSeccion('nueva-peli')" style="display:block; color:white; padding:10px 0;">➕ Añadir Película</a>
-        <a href="#" onclick="mostrarSeccion('listado')" style="display:block; color:white; padding:10px 0;">📚 Mis Películas</a>
+    <nav id="side-menu">
+        <div onclick="toggleM()" style="text-align:right; padding:10px; color:red; font-size:30px;">×</div>
+        <a href="#" onclick="sec('inicio')">INICIO</a>
+        <a href="#" onclick="sec('add')">AÑADIR PELÍCULA</a>
+        <a href="#" onclick="sec('lista')">MI LISTA</a>
     </nav>
 
     <main>
-        <section id="inicio" class="container" style="text-align:center; padding-top:50px;">
-            <h2>Bienvenido</h2>
-            <button onclick="mostrarSeccion('nueva-peli')" style="background:red; color:white; border:none; padding:15px; border-radius:10px;">COMENZAR</button>
+        <section id="inicio" class="container">
+            <h1>Bienvenido</h1>
+            <button onclick="sec('add')">EMPEZAR</button>
         </section>
 
-        <section id="nueva-peli" class="container" style="display:none; padding:20px;">
-            <div style="background:#222; padding:15px; border-radius:10px; margin-bottom:20px;">
-                <input type="text" id="input-api" placeholder="Buscar peli..." style="width:60%; padding:10px;">
-                <button onclick="buscarPeliEnAPI()" style="padding:10px; background:red; color:white; border:none;">BUSCAR</button>
-                <div id="resultados-api" style="background:#111; margin-top:10px; display:none;"></div>
-            </div>
-
-            <form id="form-pelicula">
-                <input type="text" id="titulo" placeholder="Título" style="width:100%; margin-bottom:10px; padding:10px;">
-                <input type="text" id="fotoPortada" placeholder="URL Portada" style="width:100%; margin-bottom:10px; padding:10px;">
-                <button type="button" onclick="guardarPeli()" style="width:100%; padding:15px; background:green; color:white; border:none; border-radius:10px;">GUARDAR</button>
-            </form>
+        <section id="add" class="container">
+            <h3>Nueva Película</h3>
+            <input type="text" id="api-q" placeholder="Buscar título...">
+            <button onclick="buscar()" style="background:#333;">BUSCAR EN RED</button>
+            <div id="results" style="background:#111; margin-top:10px;"></div>
+            <hr style="margin:20px 0; border-color: #333;">
+            <input type="text" id="tit" placeholder="Título">
+            <input type="text" id="img" placeholder="URL Imagen">
+            <button onclick="guardar()" style="background:green;">GUARDAR</button>
         </section>
 
-        <section id="listado" class="container" style="display:none; padding:20px;">
-            <h2>Mis Películas</h2>
-            <div id="lista-peliculas" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+        <section id="lista" class="container">
+            <h3>Mis Películas</h3>
+            <div id="print-lista" class="grid"></div>
         </section>
     </main>
 
-    <script src="script.js?v=30"></script>
+    <script>
+        // JAVASCRIPT INTEGRADO - SIN DEPENDENCIAS EXTERNAS
+        let db;
+        const req = indexedDB.open("CineStore", 1);
+        req.onupgradeneeded = (e) => e.target.result.createObjectStore("pelis", { keyPath: "id", autoIncrement: true });
+        req.onsuccess = (e) => { db = e.target.result; render(); };
+
+        function toggleM() {
+            const m = document.getElementById("side-menu");
+            m.style.left = (m.style.left === "0px") ? "-260px" : "0px";
+        }
+
+        function sec(id) {
+            document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            toggleM();
+        }
+
+        async function buscar() {
+            const q = document.getElementById('api-q').value;
+            const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=854e46049386f788b77a1188730b200b&query=${q}&language=es-ES`);
+            const data = await res.json();
+            const d = document.getElementById('results');
+            d.innerHTML = "";
+            data.results.slice(0,3).forEach(p => {
+                const btn = document.createElement('div');
+                btn.style = "padding:10px; border:1px solid #444; margin:5px 0; cursor:pointer;";
+                btn.innerText = p.title;
+                btn.onclick = () => {
+                    document.getElementById('tit').value = p.title;
+                    document.getElementById('img').value = "https://image.tmdb.org/t/p/w500" + p.poster_path;
+                    d.innerHTML = "";
+                };
+                d.appendChild(btn);
+            });
+        }
+
+        function guardar() {
+            const t = document.getElementById('tit').value;
+            const i = document.getElementById('img').value;
+            if(!t) return alert("Pon un título");
+            const tx = db.transaction("pelis", "readwrite");
+            tx.objectStore("pelis").add({titulo: t, imagen: i});
+            tx.oncomplete = () => {
+                alert("Guardado");
+                render();
+                sec('lista');
+            };
+        }
+
+        function render() {
+            const box = document.getElementById('print-lista');
+            if(!box || !db) return;
+            box.innerHTML = "";
+            db.transaction("pelis").objectStore("pelis").getAll().onsuccess = (e) => {
+                e.target.result.forEach(p => {
+                    box.innerHTML += `<div class="peli-card"><img src="${p.imagen}"><p>${p.titulo}</p></div>`;
+                });
+            };
+        }
+    </script>
 </body>
 </html>
 
