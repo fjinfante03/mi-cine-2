@@ -110,39 +110,42 @@ function cargarPeliculas() {
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         let pelis = e.target.result;
         
-        // Filtro por estado y búsqueda
-        pelis = pelis.filter(p => (currentTab === 'todas' || p.estado === currentTab) && p.titulo.toLowerCase().includes(busqueda));
+        // FILTRO UNIVERSAL: Busca en Título, Director y Reparto
+        pelis = pelis.filter(p => {
+            const coincideTab = (currentTab === 'todas' || p.estado === currentTab);
+            
+            // Buscamos en el título
+            const enTitulo = p.titulo.toLowerCase().includes(busqueda);
+            // Buscamos en el director
+            const enDirector = (p.nombreDirector || "").toLowerCase().includes(busqueda);
+            // Buscamos en los actores (si existen)
+            const enActores = p.reparto ? p.reparto.some(actor => actor.nombre.toLowerCase().includes(busqueda)) : false;
 
-        // Ordenación
+            return coincideTab && (enTitulo || enDirector || enActores);
+        });
+
+        // Ordenación (mantiene tu lógica anterior)
         pelis.sort((a, b) => {
             if (orden === 'alfabetico') return a.titulo.localeCompare(b.titulo);
             if (orden === 'nota-top') return (b.nota || 0) - (a.nota || 0);
             return (b.id || 0) - (a.id || 0);
         });
 
-        lista.innerHTML = ""; 
+        // Pintado de tarjetas
         pelis.forEach(p => {
-            const div = document.createElement('div');
-            div.className = 'card-peli';
-
-            // Lógica para mostrar la plataforma solo en pendientes
-            // Dentro del forEach de cargarPeliculas, sustituye la lógica de infoPlataforma por esta:
-
-            let colorPlataforma = "#333"; // Gris por defecto
-            const plat = p.plataforma.toLowerCase();
-
+            let colorPlataforma = "#333";
+            const plat = (p.plataforma || "").toLowerCase();
             if (plat.includes("netflix")) colorPlataforma = "#E50914";
             else if (plat.includes("prime")) colorPlataforma = "#00A8E1";
             else if (plat.includes("disney")) colorPlataforma = "#0063BE";
             else if (plat.includes("hbo") || plat.includes("max")) colorPlataforma = "#5822b4";
-            else if (plat.includes("cine") || plat.includes("otro")) colorPlataforma = "#444";
 
             const infoPlataforma = (p.estado === 'pendiente') 
-                ? `<div class="plataforma-tag" style="background-color: ${colorPlataforma}; border-color: ${colorPlataforma};">
-                    📺 ${p.plataforma}
-                   </div>` 
+                ? `<div class="plataforma-tag" style="background-color: ${colorPlataforma}; border-color: ${colorPlataforma};">📺 ${p.plataforma}</div>` 
                 : '';
 
+            const div = document.createElement('div');
+            div.className = 'card-peli';
             div.innerHTML = `
                 <div style="position:relative;">
                     <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
@@ -151,9 +154,7 @@ function cargarPeliculas() {
                 <div style="padding:10px;">
                     <h4 style="margin:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
                     <p style="font-size:10px; color:#888; margin-top:4px;">${p.anio || '---'} | ${p.nacionalidad || '---'}</p>
-                    
                     ${infoPlataforma}
-
                     <div style="display:flex; justify-content:space-between; margin-top:8px;">
                         <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; cursor:pointer;">✏️</button>
                         <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; cursor:pointer;">🗑️</button>
@@ -325,6 +326,7 @@ function importarDatos(f) {
     };
     r.readAsText(f.files[0]);
 }
+
 
 
 
