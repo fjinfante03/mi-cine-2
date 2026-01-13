@@ -180,12 +180,74 @@ function irAListadoEspecial(e) { currentTab = e; mostrarSeccion('listado'); camb
 
 function abrirEstadisticas() {
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        const vistas = e.target.result.filter(x => x.estado === 'vista');
+        const todas = e.target.result;
+        const vistas = todas.filter(x => x.estado === 'vista');
+        
+        // 1. Resumen numérico
         const mins = vistas.reduce((a, b) => a + ((b.duracion || 0) * (b.vecesVista || 1)), 0);
-        document.getElementById('stats-content').innerHTML = `<div class="persona-card" style="text-align:center;"><h1>${vistas.length}</h1><p>Películas Vistas</p><h2>${Math.floor(mins/60)}h ${mins%60}min</h2></div>`;
-        // Aquí iría la lógica de Chart.js similar a versiones anteriores
+        document.getElementById('stats-content').innerHTML = `
+            <div class="persona-card" style="text-align:center; border-left: 5px solid var(--main-red);">
+                <h1 style="font-size:3rem; margin:0;">${vistas.length}</h1>
+                <p style="color:#888; margin:0;">Películas en tu historial</p>
+                <h2 style="color:var(--main-red); margin-top:10px;">${Math.floor(mins/60)}h ${mins%60}min</h2>
+                <p style="font-size:12px; color:#555;">Tiempo total de vida dedicado al cine</p>
+            </div>`;
+
+        // 2. Procesar datos para gráficas
+        const stats = { generos: {}, paises: {}, decadas: {} };
+
+        vistas.forEach(p => {
+            // Géneros
+            if (p.genero) stats.generos[p.genero] = (stats.generos[p.genero] || 0) + 1;
+            // Países
+            if (p.nacionalidad) stats.paises[p.nacionalidad] = (stats.paises[p.nacionalidad] || 0) + 1;
+            // Décadas
+            if (p.anio) {
+                const decada = Math.floor(p.anio / 10) * 10 + "s";
+                stats.decadas[decada] = (stats.decadas[decada] || 0) + 1;
+            }
+        });
+
+        // 3. Renderizar Gráficos (Destruir anteriores si existen para evitar solapamiento)
+        if (chartGen) chartGen.destroy();
+        if (chartPais) chartPais.destroy();
+        if (chartDec) chartDec.destroy();
+
+        const configBase = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#fff' } } }
+        };
+
+        chartGen = new Chart(document.getElementById('graficoGeneros'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(stats.generos),
+                datasets: [{ data: Object.values(stats.generos), backgroundColor: ['#e50914', '#5822b4', '#00A8E1', '#0063BE', '#ffc107', '#28a745'] }]
+            },
+            options: configBase
+        });
+
+        chartPais = new Chart(document.getElementById('graficoPaises'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(stats.paises),
+                datasets: [{ label: 'Películas', data: Object.values(stats.paises), backgroundColor: '#e50914' }]
+            },
+            options: { ...configBase, scales: { y: { ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } } }
+        });
+
+        chartDec = new Chart(document.getElementById('graficoDecadas'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(stats.decadas).sort(),
+                datasets: [{ label: 'Películas por Década', data: Object.values(stats.decadas), borderColor: '#ffc107', tension: 0.3, fill: true, backgroundColor: 'rgba(255, 193, 7, 0.1)' }]
+            },
+            options: configBase
+        });
     };
 }
+
 
 
 
