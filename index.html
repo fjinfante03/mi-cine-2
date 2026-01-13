@@ -64,7 +64,12 @@
 
         function toggleM() {
             const m = document.getElementById("side-menu");
-            m.style.left = (m.style.left === "0px") ? "-260px" : "0px";
+            // Corregido para que abra y cierre siempre
+            if (m.style.left === "0px") {
+                m.style.left = "-260px";
+            } else {
+                m.style.left = "0px";
+            }
         }
 
         function sec(id) {
@@ -73,12 +78,13 @@
             document.getElementById("side-menu").style.left = "-260px";
         }
 
-        async function buscar() {
+        // HE CAMBIADO EL NOMBRE A buscarAhora PARA QUE COINCIDA CON EL BOTÓN
+        async function buscarAhora() {
             const q = document.getElementById('api-q').value; 
             if(!q) return alert("Escribe algo");
             
             const d = document.getElementById('results');
-            d.innerHTML = "Buscando...";
+            d.innerHTML = "<p style='color:yellow'>Buscando...</p>";
 
             try {
                 const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=854e46049386f788b77a1188730b200b&query=${encodeURIComponent(q)}&language=es-ES`);
@@ -87,12 +93,12 @@
 
                 data.results.slice(0, 3).forEach(p => {
                     const item = document.createElement('div');
-                    item.style = "padding:10px; border-bottom:1px solid #333; cursor:pointer;";
+                    item.style = "padding:12px; border-bottom:1px solid #333; cursor:pointer; background:#222; margin-top:5px; border-radius:5px;";
                     item.innerHTML = `<strong>${p.title}</strong>`;
                     item.onclick = () => {
                         document.getElementById('tit').value = p.title;
-                        document.getElementById('img').value = "https://image.tmdb.org/t/p/w500" + p.poster_path;
-                        d.innerHTML = "¡Cargado!";
+                        document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "";
+                        d.innerHTML = "<p style='color:green'>¡Cargado!</p>";
                     };
                     d.appendChild(item);
                 });
@@ -106,7 +112,7 @@
             const tx = db.transaction("pelis", "readwrite");
             tx.objectStore("pelis").add({titulo: t, imagen: i});
             tx.oncomplete = () => {
-                alert("Guardado!");
+                alert("¡Guardado!");
                 render();
                 sec('lista');
             };
@@ -118,13 +124,14 @@
             box.innerHTML = "";
             db.transaction("pelis").objectStore("pelis").getAll().onsuccess = (e) => {
                 e.target.result.forEach(p => {
-                    box.innerHTML += `<div class="peli-card"><img src="${p.imagen}"><p>${p.titulo}</p></div>`;
+                    box.innerHTML += `<div class="peli-card"><img src="${p.imagen}" style="width:100%"><p>${p.titulo}</p></div>`;
                 });
             };
         }
     </script>
 </body>
 </html>
+
 
 
 
