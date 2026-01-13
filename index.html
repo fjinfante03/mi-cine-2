@@ -3,21 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cine Fix Corregido</title>
+    <title>Mi Cine - Funcionando</title>
     <style>
         body { background: #000; color: white; font-family: sans-serif; margin: 0; }
         header { background: #111; padding: 15px; display: flex; align-items: center; border-bottom: 2px solid #e50914; }
         .menu-btn { font-size: 25px; color: #e50914; cursor: pointer; margin-right: 20px; border: 1px solid #e50914; padding: 5px 10px; border-radius: 5px; }
+        
         #side-menu { position: fixed; left: -260px; top: 0; width: 250px; height: 100%; background: #111; transition: 0.3s; z-index: 9999; border-right: 2px solid #e50914; padding-top: 50px; }
         #side-menu a { display: block; padding: 15px; color: white; text-decoration: none; border-bottom: 1px solid #222; font-weight: bold; }
+        
         .container { padding: 20px; display: none; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; background: #222; color: white; border: 1px solid #444; box-sizing: border-box; }
-        /* Botón de buscar en rojo brillante para que se vea activo */
-        .btn-buscar { background: #e50914 !important; color: white !important; cursor: pointer !important; opacity: 1 !important; }
-        button { background: #e50914; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer; }
+        #inicio { display: block; text-align: center; }
+        
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; background: #222; color: white; border: 1px solid #444; box-sizing: border-box; font-size: 16px; }
+        
+        /* BOTÓN BUSCAR ROJO (Para que no salga gris) */
+        .btn-buscar { background: #e50914 !important; color: white !important; cursor: pointer !important; opacity: 1 !important; display: block; width: 100%; padding: 15px; border: none; border-radius: 5px; font-weight: bold; margin-top: 5px; }
+        
+        .btn-guardar { background: #28a745; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer; }
+        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .peli-card { background: #111; border: 1px solid #333; border-radius: 8px; text-align: center; font-size: 12px; padding-bottom: 10px; }
-        .peli-card img { width: 100%; border-radius: 8px 8px 0 0; }
+        .peli-card { background: #111; border: 1px solid #333; border-radius: 8px; text-align: center; font-size: 12px; padding-bottom: 10px; overflow: hidden; }
+        .peli-card img { width: 100%; height: auto; }
+        
+        #results { margin-top: 10px; border-radius: 5px; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -28,44 +37,56 @@
     </header>
 
     <nav id="side-menu">
-        <div onclick="toggleM()" style="text-align:right; padding:10px; color:#e50914; font-size:30px;">×</div>
-        <a href="#" onclick="sec('inicio')">INICIO</a>
-        <a href="#" onclick="sec('add')">AÑADIR PELÍCULA</a>
-        <a href="#" onclick="sec('lista')">MI LISTA</a>
+        <div onclick="toggleM()" style="text-align:right; padding:10px; color:#e50914; font-size:30px; cursor:pointer;">×</div>
+        <a href="#" onclick="sec('inicio')">🏠 INICIO</a>
+        <a href="#" onclick="sec('add')">➕ AÑADIR PELÍCULA</a>
+        <a href="#" onclick="sec('lista')">📚 MI LISTA</a>
     </nav>
 
     <main>
-        <section id="inicio" class="container" style="display:block; text-align:center;">
-            <h1>Bienvenido</h1>
-            <button onclick="sec('add')">EMPEZAR</button>
+        <section id="inicio" class="container">
+            <h1 style="margin-top:40px;">Tu Videoteca</h1>
+            <p>Busca y guarda tus películas favoritas.</p>
+            <button class="btn-buscar" onclick="sec('add')">EMPEZAR AÑADIR</button>
         </section>
 
         <section id="add" class="container">
             <h3>Nueva Película</h3>
             <input type="text" id="api-q" placeholder="Escribe el nombre aquí...">
-            <button onclick="buscar()" class="btn-buscar">BUSCAR EN RED</button>
-            <div id="results" style="background:#111; margin-top:10px;"></div>
-            <hr style="margin:20px 0; border-color: #333;">
-            <input type="text" id="tit" placeholder="Título">
-            <input type="text" id="img" placeholder="URL Imagen">
-            <button onclick="guardar()" style="background:green;">GUARDAR</button>
+            <button type="button" onclick="buscar()" class="btn-buscar">BUSCAR EN RED</button>
+            
+            <div id="results"></div>
+            
+            <hr style="margin:25px 0; border: 0; border-top: 1px solid #444;">
+            
+            <label style="font-size:12px; color:#888;">Título:</label>
+            <input type="text" id="tit" placeholder="Título de la peli">
+            <label style="font-size:12px; color:#888;">URL Imagen:</label>
+            <input type="text" id="img" placeholder="https://...">
+            <button type="button" onclick="guardar()" class="btn-guardar">GUARDAR PELÍCULA</button>
         </section>
 
         <section id="lista" class="container">
-            <h3>Mis Películas</h3>
+            <h3>Mi Colección</h3>
             <div id="print-lista" class="grid"></div>
         </section>
     </main>
 
     <script>
         let db;
+        // Iniciamos la base de datos
         const req = indexedDB.open("CineStore", 1);
-        req.onupgradeneeded = (e) => e.target.result.createObjectStore("pelis", { keyPath: "id", autoIncrement: true });
-        req.onsuccess = (e) => { db = e.target.result; render(); };
+        req.onupgradeneeded = (e) => {
+            e.target.result.createObjectStore("pelis", { keyPath: "id", autoIncrement: true });
+        };
+        req.onsuccess = (e) => { 
+            db = e.target.result; 
+            render(); 
+        };
 
         function toggleM() {
             const m = document.getElementById("side-menu");
-            m.style.left = (m.style.left === "0px" || m.style.left === "") ? "-260px" : "0px";
+            m.style.left = (m.style.left === "0px") ? "-260px" : "0px";
         }
 
         function sec(id) {
@@ -76,46 +97,51 @@
 
         async function buscar() {
             const q = document.getElementById('api-q').value; 
-            if(!q) return alert("Escribe el nombre de una peli");
+            if(!q) return alert("Escribe el nombre de una película");
             
             const d = document.getElementById('results');
-            d.innerHTML = "<p style='color:yellow;'>Buscando...</p>";
-            d.style.display = "block";
-
+            d.innerHTML = "<p style='color:yellow; text-align:center;'>Buscando...</p>";
+            
             try {
+                // LLAMADA A LA API
                 const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=854e46049386f788b77a1188730b200b&query=${encodeURIComponent(q)}&language=es-ES`);
                 const data = await res.json();
                 d.innerHTML = ""; 
 
                 if (!data.results || data.results.length === 0) {
-                    d.innerHTML = "<p>No hay resultados.</p>";
+                    d.innerHTML = "<p>No se encontraron resultados.</p>";
                     return;
                 }
 
+                // MOSTRAR 3 RESULTADOS
                 data.results.slice(0, 3).forEach(p => {
                     const btn = document.createElement('div');
                     btn.style = "padding:12px; border-bottom:1px solid #333; cursor:pointer; background:#222; margin-bottom:5px; border-radius:5px;";
-                    btn.innerHTML = `<strong>${p.title}</strong>`;
+                    btn.innerHTML = `<strong>${p.title}</strong> (${p.release_date ? p.release_date.split('-')[0] : '?'})`;
                     btn.onclick = () => {
                         document.getElementById('tit').value = p.title;
                         document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "";
-                        d.style.display = "none";
+                        d.innerHTML = "<p style='color:green; font-size:12px;'>¡Datos cargados abajo! ↓</p>";
                     };
                     d.appendChild(btn);
                 });
             } catch (err) {
-                d.innerHTML = "<p>Error de red.</p>";
+                d.innerHTML = "<p style='color:red;'>Error de conexión.</p>";
             }
-        } // <--- ESTA LLAVE ES LA QUE FALTABA
+        }
 
         function guardar() {
             const t = document.getElementById('tit').value;
             const i = document.getElementById('img').value;
-            if(!t) return alert("Pon un título");
+            if(!t) return alert("Primero busca una película o escribe el título");
+            
             const tx = db.transaction("pelis", "readwrite");
             tx.objectStore("pelis").add({titulo: t, imagen: i});
             tx.oncomplete = () => {
                 alert("¡Pelicula Guardada!");
+                document.getElementById('tit').value = "";
+                document.getElementById('img').value = "";
+                document.getElementById('api-q').value = "";
                 render();
                 sec('lista');
             };
@@ -127,10 +153,5 @@
             box.innerHTML = "";
             db.transaction("pelis").objectStore("pelis").getAll().onsuccess = (e) => {
                 e.target.result.forEach(p => {
-                    box.innerHTML += `<div class="peli-card"><img src="${p.imagen}"><p>${p.titulo}</p></div>`;
-                });
-            };
-        }
-    </script>
-</body>
-</html>
+                    box.innerHTML += `<div class="peli-card"><img src="${p.imagen}" onerror="this.src='
+
