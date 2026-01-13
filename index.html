@@ -141,7 +141,7 @@
             <h2>Ajustes</h2>
             <button onclick="exportarDatos()" class="btn-save" style="background:#444;">💾 EXPORTAR COPIA</button>
             <button onclick="document.getElementById('import-file').click()" class="btn-save" style="background:#444;">📂 IMPORTAR COPIA</button>
-            <input type="file" id="import-file" style="display:none" onchange="importarDatos(this)">
+            <input type="file" id="import-file" style="display:none" accept=".json" onchange="importarDatos(this)">    
         </section>
     </main>
 
@@ -151,6 +151,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
