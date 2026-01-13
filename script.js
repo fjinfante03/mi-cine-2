@@ -49,17 +49,38 @@ async function saveMovie(id, title, poster) {
 
 function calculateStats() {
     const statsDiv = document.getElementById('statsData');
-    if (myMovies.length === 0) return;
+    if (myMovies.length === 0) {
+        statsDiv.innerHTML = "<p>Aún no hay películas en tu biblioteca.</p>";
+        return;
+    }
 
-    // Ejemplo: Calcular Director Favorito
-    const directors = myMovies.map(m => m.director);
-    const favoriteDirector = directors.sort((a,b) =>
-          directors.filter(v => v===a).length - directors.filter(v => v===b).length
-    ).pop();
+    // 1. Contar Directores
+    const directorsCount = {};
+    // 2. Contar Actores
+    const actorsCount = {};
+
+    myMovies.forEach(movie => {
+        // Contar directores
+        directorsCount[movie.director] = (directorsCount[movie.director] || 0) + 1;
+        
+        // Contar actores
+        movie.actors.forEach(actor => {
+            actorsCount[actor] = (actorsCount[actor] || 0) + 1;
+        });
+    });
+
+    // Encontrar el director más frecuente
+    const topDirector = Object.keys(directorsCount).reduce((a, b) => directorsCount[a] > directorsCount[b] ? a : b);
+    
+    // Encontrar el actor más frecuente
+    const topActor = Object.keys(actorsCount).reduce((a, b) => actorsCount[a] > actorsCount[b] ? a : b);
 
     statsDiv.innerHTML = `
-        <p>Total películas: <strong>${myMovies.length}</strong></p>
-        <p>Director favorito: <strong>${favoriteDirector}</strong></p>
+        <div class="stats-card">
+            <p>🎬 Total de películas: <strong>${myMovies.length}</strong></p>
+            <p>🎥 Director favorito: <strong>${topDirector}</strong></p>
+            <p>🌟 Actor más visto: <strong>${topActor}</strong></p>
+        </div>
     `;
 }
 
@@ -77,6 +98,7 @@ function renderLibrary() {
 // Cargar al inicio
 renderLibrary();
 calculateStats();
+
 
 
 
