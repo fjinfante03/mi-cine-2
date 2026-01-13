@@ -1,4 +1,4 @@
-const API_KEY = 'TU_API_KEY';
+const API_KEY = 'e8b61af0cf42a633e3aa581bb73127f8';
 const IMG_PATH = 'https://image.tmdb.org/t/p/w500';
 
 // Intentar cargar datos guardados del navegador (localStorage)
@@ -46,4 +46,5 @@ function renderMovies() {
 
 // Renderizar al cargar la página
 renderMovies();
+
 
