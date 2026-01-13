@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Ultra - API Edition</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css?v=6.0">
+    <title>CinePro Ultra</title>
+    <link rel="stylesheet" href="style.css?v=8.0">
 </head>
 <body>
 
@@ -36,42 +35,38 @@
         </div>
 
         <section id="seccion-inicio" class="container">
-            <div class="welcome-card" style="background:var(--card-bg); padding:30px; border-radius:15px; text-align:center;">
+            <div class="welcome-card" style="background:#1f1f1f; padding:30px; border-radius:15px; text-align:center; border: 1px solid #333;">
                 <h2>🎬 Mi Cine Personal</h2>
-                <p>Gestiona tu biblioteca con datos reales de Directores y Actores.</p>
-                <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Añadir Película</button>
+                <p>Gestiona tu biblioteca con datos automáticos.</p>
+                <button onclick="mostrarSeccion('nueva-peli')" class="btn-save" style="background:#e50914;">Añadir Película</button>
             </div>
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
-            <div class="search-api-box" style="background:#222; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid var(--main-red);">
-                <label style="color:var(--main-red); font-weight:bold; display:block; margin-bottom:5px;">🔍 BUSCADOR AUTOMÁTICO (TMDb)</label>
+            <div class="api-search-box" style="background:#222; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #e50914;">
+                <label style="color:#e50914; font-weight:bold; display:block; margin-bottom:5px; font-size:12px;">🔍 BUSCADOR AUTOMÁTICO (TMDb)</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="input-busqueda-api" placeholder="Escribe el nombre de la peli..." style="flex-grow:1; padding:10px; border-radius:5px; border:none; background:#333; color:white;">
-                    <button type="button" onclick="buscarPeliEnAPI()" style="background:var(--main-red); color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">BUSCAR</button>
+                    <input type="text" id="input-api" placeholder="Nombre de la película..." style="flex-grow:1; padding:10px; border-radius:5px; border:none; background:#333; color:white;">
+                    <button type="button" onclick="buscarPeliEnAPI()" style="background:#e50914; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">BUSCAR</button>
                 </div>
-                <div id="resultados-api" style="margin-top:10px; display:none; background:#111; border-radius:5px; max-height:200px; overflow-y:auto; border:1px solid #444;"></div>
+                <div id="resultados-api" style="margin-top:10px; display:none; background:#111; border-radius:5px; max-height:200px; overflow-y:auto;"></div>
             </div>
 
-            <h2>Datos de la Película</h2>
             <form id="form-pelicula">
                 <input type="hidden" id="edit-id">
                 <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
                 
                 <div class="grid-2">
-                    <div class="input-group">
-                        <label>Director 🔍</label>
-                        <input type="text" id="nombreDirector" onblur="buscarDatosTMDB(this.value, 'director')">
-                    </div>
-                    <div class="input-group"><label>Foto Director</label><input type="text" id="fotoDirector"></div>
+                    <div class="input-group"><label>Director</label><input type="text" id="nombreDirector"></div>
+                    <div class="input-group"><label>Foto Director (URL)</label><input type="text" id="fotoDirector"></div>
                 </div>
                 
                 <input type="hidden" id="nacDirector"><input type="hidden" id="oriDirector"><input type="hidden" id="bioDirector">
 
                 <div class="input-group">
-                    <label>Reparto (Top Actores)</label>
+                    <label>Reparto Principal</label>
                     <div id="contenedor-actores"></div>
-                    <button type="button" onclick="agregarCampoActor()" class="btn-add-actor">+ Añadir Actor</button>
+                    <button type="button" onclick="agregarCampoActor()" class="btn-add-actor" style="width:100%; padding:8px; background:#333; color:white; border:none; border-radius:5px; cursor:pointer;">+ Añadir Actor Manual</button>
                 </div>
 
                 <div class="grid-3">
@@ -82,36 +77,9 @@
                 <div class="input-group"><label>Portada (URL)</label><input type="text" id="fotoPortada"></div>
 
                 <div class="grid-2">
-                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">VISTA</button>
-                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">PENDIENTE</button>
-                </div>
-            </form>
-        </section>
+                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save" style="background:#28a745;">VISTA</button>
+                    <button type="button" onclick="validarYGuardar('
 
-        <section id="seccion-listado" class="container" style="display:none;">
-            <div class="tabs">
-                <button id="tab-todas" class="tab-btn active" onclick="cambiarTab('todas')">Todas</button>
-                <button id="tab-vista" class="tab-btn" onclick="cambiarTab('vista')">Vistas</button>
-                <button id="tab-pendiente" class="tab-btn" onclick="cambiarTab('pendiente')">Pendientes</button>
-            </div>
-            <div id="lista-peliculas" class="grid-peliculas"></div>
-        </section>
-
-        <section id="seccion-directores" class="container" style="display:none;">
-            <h2>Directores</h2>
-            <div id="lista-directores"></div>
-        </section>
-
-        <section id="seccion-actores" class="container" style="display:none;">
-            <h2>Actores</h2>
-            <div id="lista-actores"></div>
-        </section>
-    </main>
-
-    <div id="modal-img" class="modal" onclick="this.style.display='none'"><img id="img-ampliada"></div>
-    <script src="script.js?v=6.0"></script>
-</body>
-</html>
 
 
 
