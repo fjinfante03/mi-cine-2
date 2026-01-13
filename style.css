@@ -99,6 +99,12 @@ main { margin-top: 80px; padding-bottom: 50px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
+.tabs { 
+    display: flex; 
+    gap: 5px; 
+    margin-bottom: 15px; 
+    margin-top: 10px; /* Añadimos este margen superior */
+}
 
 
 
