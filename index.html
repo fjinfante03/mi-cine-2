@@ -2,107 +2,58 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Ultra</title>
-    <link rel="stylesheet" href="style.css?v=8.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cine</title>
+    <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 
     <header>
         <div class="menu-icon" onclick="toggleMenu()">☰</div>
-        <h1 onclick="mostrarSeccion('inicio')">MI CINE</h1>
-        <div style="width: 25px;"></div>
+        <h1 onclick="mostrarSeccion('seccion-inicio')">MI CINE</h1>
     </header>
 
     <nav id="side-menu" class="side-menu">
         <div class="menu-header">
             <h2>Menú</h2>
-            <span onclick="toggleMenu()">&times;</span>
+            <span onclick="toggleMenu()" style="cursor:pointer;">×</span>
         </div>
-        <a href="#" onclick="mostrarSeccion('inicio')">🏠 Inicio</a>
-        <a href="#" onclick="irAListadoEspecial('vista')">🎬 Pelis Vistas</a>
-        <a href="#" onclick="irAListadoEspecial('pendiente')">⏳ Pelis Pendientes</a>
-        <a href="#" onclick="mostrarSeccion('listado')">📚 Toda la Biblioteca</a>
-        <hr>
-        <a href="#" onclick="mostrarSeccion('seccion-directores')">👤 Directores</a>
-        <a href="#" onclick="mostrarSeccion('seccion-actores')">🎭 Actores</a>
+        <a href="#" onclick="mostrarSeccion('seccion-inicio')">🏠 Inicio</a>
         <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
+        <a href="#" onclick="mostrarSeccion('seccion-listado')">📚 Mi Lista</a>
     </nav>
 
     <main>
-        <div class="search-container" id="contenedor-busqueda" style="display:none; padding: 0 15px;">
-            <input type="text" id="buscador" placeholder="🔍 Buscar en mi lista..." oninput="ejecutarBusqueda()">
-        </div>
-
         <section id="seccion-inicio" class="container">
-            <div class="welcome-card" style="background:#1f1f1f; padding:30px; border-radius:15px; text-align:center; border: 1px solid #333;">
-                <h2>🎬 Mi Cine Personal</h2>
-                <p>Gestiona tu biblioteca con datos automáticos.</p>
-                <button onclick="mostrarSeccion('nueva-peli')" class="btn-save" style="background:#e50914;">Añadir Película</button>
+            <div style="text-align:center; padding:50px 20px;">
+                <h2>Bienvenido</h2>
+                <button onclick="mostrarSeccion('nueva-peli')" style="padding:15px; background:red; color:white; border:none; border-radius:10px;">Añadir Película</button>
             </div>
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
-            <div class="api-search-box" style="background:#222; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #e50914;">
-                <label style="color:#e50914; font-weight:bold; display:block; margin-bottom:5px; font-size:12px;">🔍 BUSCADOR AUTOMÁTICO (TMDb)</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="input-api" placeholder="Nombre de la película..." style="flex-grow:1; padding:10px; border-radius:5px; border:none; background:#333; color:white;">
-                    <button type="button" onclick="buscarPeliEnAPI()" style="background:#e50914; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">BUSCAR</button>
-                </div>
-                <div id="resultados-api" style="margin-top:10px; display:none; background:#111; border-radius:5px; max-height:200px; overflow-y:auto;"></div>
+            <div style="background:#222; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <input type="text" id="input-api" placeholder="Buscar peli en internet..." style="width:70%; padding:10px;">
+                <button onclick="buscarPeliEnAPI()" style="padding:10px; background:red; color:white; border:none;">BUSCAR</button>
+                <div id="resultados-api" style="display:none; background:#111; margin-top:10px;"></div>
             </div>
 
             <form id="form-pelicula">
-                <input type="hidden" id="edit-id">
-                <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
-                
-                <div class="grid-2">
-                    <div class="input-group"><label>Director</label><input type="text" id="nombreDirector"></div>
-                    <div class="input-group"><label>Foto Director (URL)</label><input type="text" id="fotoDirector"></div>
-                </div>
-                
-                <input type="hidden" id="nacDirector"><input type="hidden" id="oriDirector"><input type="hidden" id="bioDirector">
-
-                <div class="input-group">
-                    <label>Reparto Principal</label>
-                    <div id="contenedor-actores"></div>
-                    <button type="button" onclick="agregarCampoActor()" class="btn-add-actor" style="width:100%; padding:8px; background:#333; color:white; border:none; border-radius:5px; cursor:pointer;">+ Añadir Actor Manual</button>
-                </div>
-
-                <div class="grid-3">
-                    <div class="input-group"><label>Año</label><input type="number" id="anio"></div>
-                    <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1"></div>
-                    <div class="input-group"><label>Género</label><input type="text" id="genero"></div>
-                </div>
-                <div class="input-group"><label>Portada (URL)</label><input type="text" id="fotoPortada"></div>
-
-                <div class="grid-2">
-                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save" style="background:#28a745;">VISTA</button>
-                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save" style="background:#ffc107; color:black; padding:15px; border:none; border-radius:8px; font-weight:bold;">A PENDIENTES</button>
-                </div>
+                <input type="text" id="titulo" placeholder="Título" required style="width:100%; margin-bottom:10px; padding:10px;">
+                <input type="text" id="fotoPortada" placeholder="URL Portada" style="width:100%; margin-bottom:10px; padding:10px;">
+                <button type="button" onclick="validarYGuardar('vista')" style="width:100%; padding:15px; background:green; color:white; border:none;">GUARDAR</button>
             </form>
         </section>
 
         <section id="seccion-listado" class="container" style="display:none;">
-            <div id="lista-peliculas" class="grid-peliculas" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
-        </section>
-
-        <section id="seccion-directores" class="container" style="display:none;"><h2>Directores</h2><div id="lista-directores"></div></section>
-        <section id="seccion-actores" class="container" style="display:none;"><h2>Actores</h2><div id="lista-actores"></div></section>
-
-        <section id="seccion-inicio" class="container">
-            <div style="text-align:center; padding:50px 20px;">
-                <h2 style="color:#e50914;">¡Bienvenido a tu Cine!</h2>
-                <p>Usa el buscador automático para añadir pelis rápido.</p>
-                <button onclick="mostrarSeccion('nueva-peli')" style="background:#e50914; color:white; padding:15px 30px; border:none; border-radius:30px; font-weight:bold; cursor:pointer;">EMPEZAR</button>
-            </div>
+            <h2>Mis Películas</h2>
+            <div id="lista-peliculas" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
         </section>
     </main>
 
-    <script src="script.js?v=10.0"></script>
+    <script src="script.js?v=20"></script>
 </body>
 </html>
-
 
 
 
