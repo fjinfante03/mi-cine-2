@@ -126,8 +126,21 @@ function cargarPeliculas() {
             div.className = 'card-peli';
 
             // Lógica para mostrar la plataforma solo en pendientes
+            // Dentro del forEach de cargarPeliculas, sustituye la lógica de infoPlataforma por esta:
+
+            let colorPlataforma = "#333"; // Gris por defecto
+            const plat = p.plataforma.toLowerCase();
+
+            if (plat.includes("netflix")) colorPlataforma = "#E50914";
+            else if (plat.includes("prime")) colorPlataforma = "#00A8E1";
+            else if (plat.includes("disney")) colorPlataforma = "#0063BE";
+            else if (plat.includes("hbo") || plat.includes("max")) colorPlataforma = "#5822b4";
+            else if (plat.includes("cine") || plat.includes("otro")) colorPlataforma = "#444";
+
             const infoPlataforma = (p.estado === 'pendiente') 
-                ? `<div class="plataforma-tag">📺 ${p.plataforma}</div>` 
+                ? `<div class="plataforma-tag" style="background-color: ${colorPlataforma}; border-color: ${colorPlataforma};">
+                    📺 ${p.plataforma}
+                   </div>` 
                 : '';
 
             div.innerHTML = `
@@ -312,6 +325,7 @@ function importarDatos(f) {
     };
     r.readAsText(f.files[0]);
 }
+
 
 
 
