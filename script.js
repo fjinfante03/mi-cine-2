@@ -231,5 +231,6 @@ function mostrarSeccion(id) {
 function toggleMenu() { document.getElementById("side-menu").classList.toggle("active"); }
 function irAListadoEspecial(e) { currentTab = e; mostrarSeccion('listado'); }
 function cambiarTab(t) { currentTab = t; cargarPeliculas(); }
+function agregarCampoActor() { agregarFilaActor("", Date.now()); }
 
 
