@@ -170,38 +170,48 @@ function validarYGuardar(estado) {
 
 function cargarPeliculas(filtro = "") {
     const lista = document.getElementById('lista-peliculas');
-    const orden = document.getElementById('ordenar-por').value;
+    if (!lista) return;
+    
+    // 1. LIMPIEZA TOTAL DEL CONTENEDOR ANTES DE PINTAR
     lista.innerHTML = ""; 
 
-    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
-        let pelis = e.target.result.filter(p => (currentTab === 'todas' || p.estado === currentTab));
+    const tx = db.transaction("peliculas", "readonly");
+    const store = tx.objectStore("peliculas");
+
+    store.getAll().onsuccess = (e) => {
+        let pelis = e.target.result;
         
+        // 2. FILTRADO POR ESTADO (Vistas/Pendientes)
+        if (currentTab !== 'todas') {
+            pelis = pelis.filter(p => p.estado === currentTab);
+        }
+        
+        // 3. FILTRADO POR BUSCADOR
         if (filtro) {
             pelis = pelis.filter(p => 
-                p.titulo.toLowerCase().includes(filtro) || 
-                (p.nombreDirector || "").toLowerCase().includes(filtro) ||
-                (p.reparto ? p.reparto.some(a => a.nombre.toLowerCase().includes(filtro)) : false)
+                p.titulo.toLowerCase().includes(filtro.toLowerCase()) || 
+                (p.nombreDirector || "").toLowerCase().includes(filtro.toLowerCase())
             );
         }
 
+        // 4. ORDENACIÓN
+        const orden = document.getElementById('ordenar-por').value;
         pelis.sort((a, b) => {
             if (orden === 'alfabetico') return a.titulo.localeCompare(b.titulo);
             if (orden === 'nota-top') return b.nota - a.nota;
             return b.id - a.id;
         });
 
+        // 5. RENDERIZADO ÚNICO
+        if (pelis.length === 0) {
+            lista.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#555; padding:20px;">No hay películas en esta sección.</p>`;
+            return;
+        }
+
         pelis.forEach(p => {
-            let colorPlat = "#333";
-            const plat = (p.plataforma || "").toLowerCase();
-            if (plat.includes("netflix")) colorPlat = "#E50914";
-            else if (plat.includes("prime")) colorPlat = "#00A8E1";
-            else if (plat.includes("disney")) colorPlat = "#0063BE";
-            else if (plat.includes("hbo")) colorPlat = "#5822b4";
-
-            const tag = p.estado === 'pendiente' ? `<div class="plataforma-tag" style="background:${colorPlat}">📺 ${p.plataforma}</div>` : '';
-
             const div = document.createElement('div');
             div.className = 'card-peli';
+            // Usamos el ID real de la base de datos para los botones
             div.innerHTML = `
                 <div style="position:relative;">
                     <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
@@ -210,17 +220,15 @@ function cargarPeliculas(filtro = "") {
                 <div style="padding:10px;">
                     <h4 style="margin:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.titulo}</h4>
                     <p style="font-size:10px; color:#888;">${p.anio || '---'} | ${p.nacionalidad || '---'}</p>
-                    ${tag}
                     <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
-                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
+                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px; cursor:pointer;">✏️</button>
+                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px; cursor:pointer;">🗑️</button>
                     </div>
                 </div>`;
             lista.appendChild(div);
         });
     };
 }
-
 function generarPersonas(tipo, filtro = "") {
     const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
     contenedor.innerHTML = "";
@@ -336,7 +344,17 @@ function editar(id) {
     };
 }
 
-function eliminar(id) { if(confirm("¿Eliminar película?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => cargarPeliculas(); }
+function eliminar(id) {
+    if (!confirm("¿Seguro que quieres eliminar esta película?")) return;
+
+    const tx = db.transaction("peliculas", "readwrite");
+    const store = tx.objectStore("peliculas");
+
+    store.delete(id).onsuccess = () => {
+        // En lugar de recargar toda la web, solo refrescamos la lista
+        cargarPeliculas(document.getElementById('buscador').value);
+    };
+}
 function ampliar(s) { document.getElementById('modal-img').style.display='flex'; document.getElementById('img-ampliada').src=s; }
 function cambiarTab(t) { currentTab = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); cargarPeliculas(); }
 function irAListadoEspecial(e) { 
@@ -406,6 +424,7 @@ function importarDatos(input) {
 
     lector.readAsText(archivo);
 }
+
 
 
 
