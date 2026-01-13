@@ -26,6 +26,9 @@ function mostrarSeccion(id) {
     const el = document.getElementById(target);
     if(el) el.style.display = 'block';
 
+    // ESTO ASEGURA QUE LA SECCIÓN EMPIECE DESDE ARRIBA
+    window.scrollTo(0, 0);
+
     if (id === 'seccion-directores') generarPersonas('director');
     if (id === 'seccion-actores') generarPersonas('actor');
     if (id === 'pantalla-estadisticas') abrirEstadisticas();
@@ -308,6 +311,7 @@ function importarDatos(input) {
 
     lector.readAsText(archivo);
 }
+
 
 
 
