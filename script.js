@@ -200,26 +200,60 @@ function abrirEstadisticas() {
 function generarPersonas(tipo) {
     const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
     contenedor.innerHTML = "";
+
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
         let mapa = {};
-        e.target.result.forEach(p => {
-            const keys = (tipo === 'director') ? [p.nombreDirector] : (p.reparto ? p.reparto.map(a => a.nombre) : []);
-            keys.forEach(nombre => {
-                if(!nombre) return;
-                if(!mapa[nombre]) mapa[nombre] = { nombre, foto: (tipo === 'director' ? p.fotoDirector : p.reparto.find(x => x.nombre === nombre).foto), pelis: [] };
-                mapa[nombre].pelis.push(p);
-            });
+        const todasPelis = e.target.result;
+
+        // FILTRO: Solo procesamos las películas que tienen el estado 'vista'
+        const pelisVistas = todasPelis.filter(p => p.estado === 'vista');
+
+        pelisVistas.forEach(p => {
+            if (tipo === 'director' && p.nombreDirector) {
+                if (!mapa[p.nombreDirector]) {
+                    mapa[p.nombreDirector] = { nombre: p.nombreDirector, foto: p.fotoDirector, pelis: [] };
+                }
+                mapa[p.nombreDirector].pelis.push(p);
+            } else if (tipo === 'actor' && p.reparto) {
+                p.reparto.forEach(a => {
+                    if (!mapa[a.nombre]) {
+                        mapa[a.nombre] = { nombre: a.nombre, foto: a.foto, pelis: [] };
+                    }
+                    mapa[a.nombre].pelis.push(p);
+                });
+            }
         });
-        Object.values(mapa).sort((a,b) => b.pelis.length - a.pelis.length).forEach(per => {
-            per.pelis.sort((a,b) => b.nota - a.nota);
+
+        // Convertimos a array y ordenamos por cantidad de pelis (Ranking)
+        let listaOrdenada = Object.values(mapa).sort((a, b) => b.pelis.length - a.pelis.length);
+
+        listaOrdenada.forEach(persona => {
+            // Ordenamos las pelis de esta persona por nota dentro de su ficha
+            persona.pelis.sort((a, b) => (b.nota || 0) - (a.nota || 0));
+
             const div = document.createElement('div');
             div.className = 'persona-card';
             div.innerHTML = `
                 <div class="persona-header">
-                    <img src="${per.foto || 'https://via.placeholder.com/60'}" class="persona-img">
-                    <div><h3 style="margin:0;">${per.nombre}</h3><p style="margin:0; font-size:11px; color:#888;">${per.pelis.length} películas</p></div>
+                    <div style="position:relative;">
+                        <img src="${persona.foto || 'https://via.placeholder.com/60'}" class="persona-img">
+                        <span style="position:absolute; top:-5px; right:-5px; background:var(--main-red); color:white; border-radius:50%; width:22px; height:22px; font-size:11px; display:flex; align-items:center; justify-content:center; border:2px solid black; font-weight:bold;">
+                            ${persona.pelis.length}
+                        </span>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:16px;">${persona.nombre}</h3>
+                        <p style="margin:0; font-size:11px; color:#888;">Vistas: ${persona.pelis.length}</p>
+                    </div>
                 </div>
-                <div class="persona-pelis">${per.pelis.map(p => `<img src="${p.fotoPortada}" class="mini-portada" onclick="ampliar('${p.fotoPortada}')">`).join('')}</div>`;
+                <div class="persona-pelis">
+                    ${persona.pelis.map(p => `
+                        <div style="position:relative; flex-shrink:0;">
+                            <img src="${p.fotoPortada || 'https://via.placeholder.com/60'}" class="mini-portada" onclick="ampliar('${p.fotoPortada}')">
+                            <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.8); color:#ffc107; font-size:9px; padding:2px 4px; border-radius:4px; font-weight:bold;">⭐${p.nota}</span>
+                        </div>
+                    `).join('')}
+                </div>`;
             contenedor.appendChild(div);
         });
     };
@@ -269,6 +303,7 @@ function importarDatos(f) {
     };
     r.readAsText(f.files[0]);
 }
+
 
 
 
