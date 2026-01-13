@@ -2,30 +2,36 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mi Filmoteca Personal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cine 2 - Gestión Personal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Mis Pelis & Estadísticas</h1>
-        <div class="search-container">
-            <input type="text" id="movieSearch" placeholder="Busca una peli para añadir...">
-            <button onclick="searchMovie()">Buscar</button>
+    <nav>
+        <h1>🎬 Mi Cine Personal</h1>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar película o actor...">
+            <button id="searchBtn">Buscar</button>
         </div>
-    </header>
+    </nav>
 
-    <main id="movieGrid">
-        </main>
+    <main>
+        <section id="results" class="grid-container"></section>
+        
+        <hr>
+        <h2>Mis Películas Guardadas</h2>
+        <section id="myLibrary" class="grid-container"></section>
 
-    <section id="stats">
-        <h2>Mis Estadísticas</h2>
-        <div id="statsContent"></div>
-    </section>
+        <section id="statistics">
+            <h2>Mis Estadísticas</h2>
+            <div id="statsData">
+                </div>
+        </section>
+    </main>
 
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
-
 
 
 
