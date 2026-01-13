@@ -80,24 +80,45 @@
         }
 
         async function buscar() {
-            const q = document.getElementById('api-q').value;
-            const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=854e46049386f788b77a1188730b200b&query=${q}&language=es-ES`);
-            const data = await res.json();
+            // 1. Cogemos el texto del buscador
+            const q = document.getElementById('api-q').value; 
+            if(!q) return alert("Escribe el nombre de una peli");
+            
             const d = document.getElementById('results');
-            d.innerHTML = "";
-            data.results.slice(0,3).forEach(p => {
-                const btn = document.createElement('div');
-                btn.style = "padding:10px; border:1px solid #444; margin:5px 0; cursor:pointer;";
-                btn.innerText = p.title;
-                btn.onclick = () => {
-                    document.getElementById('tit').value = p.title;
-                    document.getElementById('img').value = "https://image.tmdb.org/t/p/w500" + p.poster_path;
-                    d.innerHTML = "";
-                };
-                d.appendChild(btn);
-            });
-        }
+            d.innerHTML = "<p style='color:yellow; font-size:12px;'>Buscando en la base de datos...</p>";
+            d.style.display = "block";
 
+            try {
+                // 2. Llamamos a la API (TMDB)
+                const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=854e46049386f788b77a1188730b200b&query=${encodeURIComponent(q)}&language=es-ES`);
+                const data = await res.json();
+                
+                d.innerHTML = ""; // Limpiamos el mensaje de espera
+
+                if (!data.results || data.results.length === 0) {
+                    d.innerHTML = "<p style='color:white; padding:10px;'>No se encontró nada. Revisa el nombre.</p>";
+                    return;
+                }
+
+                // 3. Mostramos los 3 primeros resultados
+                data.results.slice(0, 3).forEach(p => {
+                    const btn = document.createElement('div');
+                    btn.style = "padding:12px; border-bottom:1px solid #333; cursor:pointer; background:#222; margin-bottom:5px; border-radius:5px;";
+                    const anio = p.release_date ? p.release_date.split('-')[0] : '¿?';
+                    btn.innerHTML = `<strong>${p.title}</strong> <small style='color:#888'>(${anio})</small>`;
+                    
+                    // Al hacer clic, se rellenan los campos de abajo
+                    btn.onclick = () => {
+                        document.getElementById('tit').value = p.title;
+                        document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "";
+                        d.style.display = "none";
+                    };
+                    d.appendChild(btn);
+                });
+            } catch (err) {
+                d.innerHTML = "<p style='color:red;'>Error de conexión. Inténtalo de nuevo.</p>";
+            }
+        }
         function guardar() {
             const t = document.getElementById('tit').value;
             const i = document.getElementById('img').value;
@@ -124,6 +145,7 @@
     </script>
 </body>
 </html>
+
 
 
 
