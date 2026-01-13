@@ -254,7 +254,17 @@ function editar(id) {
 function eliminar(id) { if(confirm("¿Eliminar película?")) db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => cargarPeliculas(); }
 function ampliar(s) { document.getElementById('modal-img').style.display='flex'; document.getElementById('img-ampliada').src=s; }
 function cambiarTab(t) { currentTab = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); cargarPeliculas(); }
-function irAListadoEspecial(e) { currentTab = e; mostrarSeccion('listado'); cambiarTab(e); }
+function irAListadoEspecial(e) { 
+    currentTab = e; 
+    mostrarSeccion('listado'); // Esto ya activa el buscador y el listado
+    cambiarTab(e); 
+    
+    // Forzamos el scroll al inicio para que el header no tape nada
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
 
 function exportarDatos() {
     db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
@@ -311,6 +321,7 @@ function importarDatos(input) {
 
     lector.readAsText(archivo);
 }
+
 
 
 
