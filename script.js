@@ -1,14 +1,10 @@
 let db;
 let currentTab = 'todas';
 let guardando = false;
+const API_KEY = 'e8b61af0cf42a633e3aa581bb73127f8'; // <--- PON AQUÍ TU API KEY DE TMDB
 
-// 1. Conexión limpia a la DB
-const request = indexedDB.open("CineTrackDB", 15);
-request.onsuccess = (e) => { 
-    db = e.target.result; 
-    console.log("DB Conectada");
-    cargarPeliculas(); 
-};
+const request = indexedDB.open("CineTrackDB", 20);
+request.onsuccess = (e) => { db = e.target.result; cargarPeliculas(); };
 request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("peliculas")) {
@@ -16,175 +12,183 @@ request.onupgradeneeded = (e) => {
     }
 };
 
-// 2. Navegación corregida
-function mostrarSeccion(id) {
-    const sideMenu = document.getElementById("side-menu");
-    if(sideMenu) sideMenu.classList.remove("active");
-
-    document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
-    
-    let targetId = id;
-    if (id === 'inicio') targetId = 'seccion-inicio';
-    if (id === 'listado') targetId = 'seccion-listado';
-
-    const el = document.getElementById(targetId);
-    if (el) el.style.display = 'block';
-
-    const buscadorUI = document.getElementById('contenedor-busqueda');
-    if(buscadorUI) {
-        buscadorUI.style.display = ['seccion-listado', 'seccion-directores', 'seccion-actores'].includes(targetId) ? 'block' : 'none';
-    }
-
-    if (targetId === 'seccion-listado') cargarPeliculas();
-    if (targetId === 'pantalla-estadisticas') abrirEstadisticas();
-    
-    window.scrollTo(0,0);
+// --- BUSCADOR EXTERNO TMDB ---
+async function buscarEnTMDB(nombre, tipo, actorId = null) {
+    if (!nombre || nombre.length < 3) return;
+    try {
+        const res = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${API_KEY}&query=${encodeURIComponent(nombre)}&language=es-ES`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+            const pId = data.results[0].id;
+            const detRes = await fetch(`https://api.themoviedb.org/3/person/${pId}?api_key=${API_KEY}&language=es-ES`);
+            const det = await detRes.json();
+            
+            if (tipo === 'director') {
+                document.getElementById('fotoDirector').value = `https://image.tmdb.org/t/p/w500${det.profile_path}`;
+                document.getElementById('nacimientoDirector').value = det.birthday || "";
+                document.getElementById('origenDirector').value = det.place_of_birth || "";
+                document.getElementById('bioDirector').value = det.biography || "";
+            } else {
+                // Para actores en el reparto
+                const inputFoto = document.getElementById(`foto-actor-${actorId}`);
+                const inputBio = document.getElementById(`bio-actor-${actorId}`);
+                const inputNac = document.getElementById(`nac-actor-${actorId}`);
+                const inputOri = document.getElementById(`ori-actor-${actorId}`);
+                if(inputFoto) inputFoto.value = `https://image.tmdb.org/t/p/w500${det.profile_path}`;
+                if(inputBio) inputBio.value = det.biography || "";
+                if(inputNac) inputNac.value = det.birthday || "";
+                if(inputOri) inputOri.value = det.place_of_birth || "";
+            }
+        }
+    } catch (err) { console.error("Error TMDB", err); }
 }
 
-// 3. GUARDADO ANTI-DUPLICADOS
+// --- GESTIÓN DE PELÍCULAS ---
 function validarYGuardar(estado) {
-    if (guardando) return; // Bloqueo de seguridad
-
-    const tituloInput = document.getElementById('titulo');
-    const titulo = tituloInput.value.trim();
+    if (guardando) return;
+    const titulo = document.getElementById('titulo').value.trim();
     if (!titulo) return alert("Título obligatorio");
 
-    guardando = true; // Activamos bloqueo
-    const idInput = document.getElementById('edit-id');
-
+    guardando = true;
     const peli = {
-        titulo: titulo,
+        titulo,
         nombreDirector: document.getElementById('nombreDirector').value,
         fotoDirector: document.getElementById('fotoDirector').value,
-        reparto: Array.from(document.querySelectorAll('.actor-card-form')).map(f => ({
-            nombre: f.querySelector('.nombre-actor').value,
-            foto: f.querySelector('.foto-actor').value
-        })).filter(a => a.nombre),
+        nacimientoDirector: document.getElementById('nacimientoDirector').value,
+        origenDirector: document.getElementById('origenDirector').value,
+        bioDirector: document.getElementById('bioDirector').value,
         fotoPortada: document.getElementById('fotoPortada').value || 'https://via.placeholder.com/150',
-        nota: parseFloat(document.getElementById('nota').value) || 0,
-        duracion: parseInt(document.getElementById('duracion').value) || 0,
+        reparto: Array.from(document.querySelectorAll('.actor-card-form')).map((f, idx) => ({
+            nombre: f.querySelector('.nombre-actor').value,
+            foto: f.querySelector('.foto-actor').value,
+            bio: f.querySelector('.bio-actor').value,
+            nacimiento: f.querySelector('.nac-actor').value,
+            origen: f.querySelector('.ori-actor').value
+        })).filter(a => a.nombre),
         genero: document.getElementById('genero').value,
-        plataforma: document.getElementById('plataforma').value,
-        anio: parseInt(document.getElementById('anio').value) || 0,
+        anio: document.getElementById('anio').value,
+        nota: document.getElementById('nota').value,
         estado: estado
     };
 
     const tx = db.transaction("peliculas", "readwrite");
-    const store = tx.objectStore("peliculas");
-
-    if (idInput.value) {
-        peli.id = parseInt(idInput.value);
-        store.put(peli);
-    } else {
-        store.add(peli);
-    }
-
+    tx.objectStore("peliculas").add(peli);
     tx.oncomplete = () => {
-        // Limpiar formulario inmediatamente
         document.getElementById('form-pelicula').reset();
         document.getElementById('contenedor-actores').innerHTML = "";
-        idInput.value = "";
-        
-        // Ir a la pestaña y desbloquear
-        currentTab = estado;
-        guardando = false; 
-        
-        // Solo llamamos a mostrarSeccion, que a su vez llama a cargarPeliculas
-        mostrarSeccion('listado');
-        actualizarBotonesTabs(estado);
+        guardando = false;
+        irAListadoEspecial(estado);
     };
 }
 
-// 4. CARGA DE PELÍCULAS (Con limpieza reforzada)
-function cargarPeliculas(filtro = "") {
+function cargarPeliculas() {
     const lista = document.getElementById('lista-peliculas');
     if (!lista) return;
-    
-    // Limpieza total del contenedor antes de empezar
-    lista.innerHTML = ""; 
+    lista.innerHTML = "";
+    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
+        const pelis = e.target.result.filter(p => currentTab === 'todas' || p.estado === currentTab);
+        pelis.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'card-peli';
+            div.innerHTML = `<img src="${p.fotoPortada}" class="img-peli"><h4>${p.titulo}</h4>`;
+            lista.appendChild(div);
+        });
+    };
+}
 
-    const tx = db.transaction("peliculas", "readonly");
-    const store = tx.objectStore("peliculas");
-
-    store.getAll().onsuccess = (e) => {
-        let pelis = e.target.result;
-        
-        // 1. Filtro de pestañas
-        if (currentTab !== 'todas') {
-            pelis = pelis.filter(p => p.estado === currentTab);
-        }
-
-        // 2. FILTRO ANTI-DUPLICADOS (El Rescate)
-        // Creamos una lista limpia donde no se repiten títulos
-        const titulosVistos = new Set();
-        const pelisUnicas = [];
+// --- GENERAR SECCIÓN DIRECTORES / ACTORES ---
+function generarPersonas(tipo) {
+    const contenedor = document.getElementById(tipo === 'director' ? 'lista-directores' : 'lista-actores');
+    contenedor.innerHTML = "";
+    db.transaction("peliculas").objectStore("peliculas").getAll().onsuccess = (e) => {
+        const pelis = e.target.result;
+        let mapa = {};
 
         pelis.forEach(p => {
-            const tituloNormalizado = p.titulo.trim().toLowerCase();
-            if (!titulosVistos.has(tituloNormalizado)) {
-                titulosVistos.add(tituloNormalizado);
-                pelisUnicas.push(p);
+            if (tipo === 'director' && p.nombreDirector) {
+                if (!mapa[p.nombreDirector]) mapa[p.nombreDirector] = { 
+                    nombre: p.nombreDirector, foto: p.fotoDirector, bio: p.bioDirector, 
+                    nac: p.nacimientoDirector, ori: p.origenDirector, pelis: [] 
+                };
+                mapa[p.nombreDirector].pelis.push(p);
+            } else if (tipo === 'actor') {
+                p.reparto.forEach(a => {
+                    if (!mapa[a.nombre]) mapa[a.nombre] = { 
+                        nombre: a.nombre, foto: a.foto, bio: a.bio, 
+                        nac: a.nacimiento, ori: a.origen, pelis: [] 
+                    };
+                    mapa[a.nombre].pelis.push(p);
+                });
             }
         });
 
-        // 3. Renderizamos solo las únicas
-        pelisUnicas.forEach(p => {
+        Object.values(mapa).forEach(per => {
             const div = document.createElement('div');
-            div.className = 'card-peli';
+            div.className = 'persona-card';
             div.innerHTML = `
-                <div style="position:relative;">
-                    <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
-                    ${p.estado === 'vista' ? `<div class="nota-badge">⭐ ${p.nota}</div>` : ''}
-                </div>
-                <div style="padding:10px;">
-                    <h4 style="margin:0; font-size:14px;">${p.titulo}</h4>
-                    <div style="display:flex; justify-content:space-between; margin-top:10px;">
-                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
-                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
+                <div class="persona-header">
+                    <img src="${per.foto || 'https://via.placeholder.com/150'}" class="persona-img">
+                    <div class="info-bio">
+                        <h3>${per.nombre}</h3>
+                        <p>📍 ${per.ori || '---'}</p>
+                        <p>📅 ${per.nac || '---'}</p>
                     </div>
-                </div>`;
-            lista.appendChild(div);
+                </div>
+                <div class="persona-tabs">
+                    <div class="p-tab active" onclick="switchTab(this, 'filmo-${per.nombre.replace(/\s/g, '')}')">FILMOGRAFÍA</div>
+                    <div class="p-tab" onclick="switchTab(this, 'bio-${per.nombre.replace(/\s/g, '')}')">BIOGRAFÍA</div>
+                </div>
+                <div id="filmo-${per.nombre.replace(/\s/g, '')}" class="p-content">
+                    <div class="filmografia-interna">
+                        ${per.pelis.map(pl => `<div class="mini-peli"><img src="${pl.fotoPortada}"><span>${pl.anio}</span></div>`).join('')}
+                    </div>
+                </div>
+                <div id="bio-${per.nombre.replace(/\s/g, '')}" class="p-content" style="display:none;">
+                    <p class="biografia-txt">${per.bio || 'Sin biografía disponible.'}</p>
+                </div>
+            `;
+            contenedor.appendChild(div);
         });
-
-        if (pelisUnicas.length === 0) {
-            lista.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#555;">No hay películas aquí.</p>`;
-        }
     };
 }
 
-// Funciones auxiliares
-function eliminar(id) {
-    if (!confirm("¿Eliminar película?")) return;
-    db.transaction("peliculas", "readwrite").objectStore("peliculas").delete(id).onsuccess = () => cargarPeliculas();
+// --- UTILIDADES ---
+function switchTab(btn, id) {
+    const parent = btn.parentElement.parentElement;
+    parent.querySelectorAll('.p-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    parent.querySelectorAll('.p-content').forEach(c => c.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
 }
 
-function cambiarTab(t) {
-    currentTab = t;
-    actualizarBotonesTabs(t);
-    cargarPeliculas();
+function agregarCampoActor() {
+    const id = Date.now();
+    const div = document.createElement('div');
+    div.className = "actor-card-form";
+    div.innerHTML = `
+        <input type="text" placeholder="Nombre Actor" class="nombre-actor" onblur="buscarEnTMDB(this.value, 'actor', ${id})">
+        <input type="hidden" id="foto-actor-${id}" class="foto-actor">
+        <input type="hidden" id="bio-actor-${id}" class="bio-actor">
+        <input type="hidden" id="nac-actor-${id}" class="nac-actor">
+        <input type="hidden" id="ori-actor-${id}" class="ori-actor">
+        <button type="button" onclick="this.parentElement.remove()">✕</button>
+    `;
+    document.getElementById('contenedor-actores').appendChild(div);
 }
 
-function actualizarBotonesTabs(t) {
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('active');
-        if(b.id === 'tab-' + t) b.classList.add('active');
-    });
+function mostrarSeccion(id) {
+    document.getElementById("side-menu").classList.remove("active");
+    document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
+    let target = id === 'inicio' ? 'seccion-inicio' : id === 'listado' ? 'seccion-listado' : id;
+    document.getElementById(target).style.display = 'block';
+    if(id === 'seccion-directores') generarPersonas('director');
+    if(id === 'seccion-actores') generarPersonas('actor');
+    window.scrollTo(0,0);
 }
 
 function toggleMenu() { document.getElementById("side-menu").classList.toggle("active"); }
-function irAListadoEspecial(e) { currentTab = e; mostrarSeccion('listado'); actualizarBotonesTabs(e); }
-function ejecutarBusqueda() { cargarPeliculas(document.getElementById('buscador').value); }
-function agregarCampoActor() {
-    const div = document.createElement('div');
-    div.className = "actor-card-form";
-    div.innerHTML = `<input type="text" class="nombre-actor" placeholder="Actor"><input type="text" class="foto-actor" placeholder="URL Foto"><button
-
-
-
-
-
-
-
+function irAListadoEspecial(e) { currentTab = e; mostrarSeccion('listado'); }
+function cambiarTab(t) { currentTab = t; cargarPeliculas(); }
 
 
 
