@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro - Filmaffinity Mode</title>
+    <title>CinePro Ultra - API Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="style.css?v=6.0">
 </head>
 <body>
 
@@ -44,22 +44,32 @@
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
-            <h2>Añadir a la Biblioteca</h2>
+            <div class="search-api-box" style="background:#222; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid var(--main-red);">
+                <label style="color:var(--main-red); font-weight:bold; display:block; margin-bottom:5px;">🔍 BUSCADOR AUTOMÁTICO (TMDb)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="input-busqueda-api" placeholder="Escribe el nombre de la peli..." style="flex-grow:1; padding:10px; border-radius:5px; border:none; background:#333; color:white;">
+                    <button type="button" onclick="buscarPeliEnAPI()" style="background:var(--main-red); color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">BUSCAR</button>
+                </div>
+                <div id="resultados-api" style="margin-top:10px; display:none; background:#111; border-radius:5px; max-height:200px; overflow-y:auto; border:1px solid #444;"></div>
+            </div>
+
+            <h2>Datos de la Película</h2>
             <form id="form-pelicula">
                 <input type="hidden" id="edit-id">
-                <div class="input-group"><label>Título de la Película</label><input type="text" id="titulo" required></div>
+                <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
                 
                 <div class="grid-2">
                     <div class="input-group">
-                        <label>Director (Escribe y pulsa fuera) 🔍</label>
+                        <label>Director 🔍</label>
                         <input type="text" id="nombreDirector" onblur="buscarDatosTMDB(this.value, 'director')">
                     </div>
-                    <div class="input-group"><label>URL Foto</label><input type="text" id="fotoDirector"></div>
+                    <div class="input-group"><label>Foto Director</label><input type="text" id="fotoDirector"></div>
                 </div>
+                
                 <input type="hidden" id="nacDirector"><input type="hidden" id="oriDirector"><input type="hidden" id="bioDirector">
 
                 <div class="input-group">
-                    <label>Reparto (Actores)</label>
+                    <label>Reparto (Top Actores)</label>
                     <div id="contenedor-actores"></div>
                     <button type="button" onclick="agregarCampoActor()" class="btn-add-actor">+ Añadir Actor</button>
                 </div>
@@ -69,11 +79,11 @@
                     <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1"></div>
                     <div class="input-group"><label>Género</label><input type="text" id="genero"></div>
                 </div>
-                <div class="input-group"><label>URL Portada</label><input type="text" id="fotoPortada"></div>
+                <div class="input-group"><label>Portada (URL)</label><input type="text" id="fotoPortada"></div>
 
                 <div class="grid-2">
-                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">GUARDAR COMO VISTA</button>
-                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">A PENDIENTES</button>
+                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">VISTA</button>
+                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">PENDIENTE</button>
                 </div>
             </form>
         </section>
@@ -99,10 +109,9 @@
     </main>
 
     <div id="modal-img" class="modal" onclick="this.style.display='none'"><img id="img-ampliada"></div>
-    <script src="script.js?v=5.0"></script>
+    <script src="script.js?v=6.0"></script>
 </body>
 </html>
-
 
 
 
