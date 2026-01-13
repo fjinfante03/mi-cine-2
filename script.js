@@ -42,20 +42,16 @@ function ejecutarBusqueda() {
     else if (document.getElementById('seccion-actores').style.display !== 'none') generarPersonas('actor', busqueda);
 }
 
-let guardando = false; // Variable de control global
+let isSaving = false; // Bloqueo global
 
 function validarYGuardar(estado) {
-    if (guardando) return; // Si ya se está guardando, ignoramos el clic
+    if (isSaving) return; // Si ya está guardando, ignora cualquier otro clic
 
-    const idInput = document.getElementById('edit-id');
     const titulo = document.getElementById('titulo').value.trim();
+    if (!titulo) return alert("El título es obligatorio");
 
-    if (!titulo) {
-        alert("El título es obligatorio");
-        return;
-    }
-
-    guardando = true; // Bloqueamos futuros clics
+    isSaving = true; // Activamos bloqueo
+    const idInput = document.getElementById('edit-id');
 
     const peli = {
         titulo: titulo,
@@ -76,6 +72,31 @@ function validarYGuardar(estado) {
         estado: estado
     };
 
+    const tx = db.transaction("peliculas", "readwrite");
+    const store = tx.objectStore("peliculas");
+
+    if (idInput.value) {
+        peli.id = parseInt(idInput.value);
+        store.put(peli);
+    } else {
+        store.add(peli);
+    }
+
+    tx.oncomplete = () => {
+        // Limpieza absoluta
+        document.getElementById('form-pelicula').reset();
+        idInput.value = "";
+        document.getElementById('contenedor-actores').innerHTML = "";
+        
+        // Pequeño retraso antes de permitir guardar otra vez y refrescar
+        setTimeout(() => {
+            isSaving = false;
+            currentTab = estado;
+            mostrarSeccion('listado');
+            cambiarTab(estado);
+        }, 500);
+    };
+}
     const tx = db.transaction("peliculas", "readwrite");
     const store = tx.objectStore("peliculas");
 
@@ -385,6 +406,7 @@ function importarDatos(input) {
 
     lector.readAsText(archivo);
 }
+
 
 
 
