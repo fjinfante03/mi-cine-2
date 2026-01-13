@@ -69,6 +69,16 @@ function calculateStats() {
         });
     });
 
+    // Dentro de tu función de calcular estadísticas:
+    const genresCount = {};
+    myMovies.forEach(movie => {
+        // Si guardaste los géneros al añadir la peli
+        movie.genres.forEach(g => {
+            genresCount[g] = (genresCount[g] || 0) + 1;
+        });
+    });
+    // Esto te permite saber si eres más de "Acción", "Drama", etc.
+
     // Encontrar el director más frecuente
     const topDirector = Object.keys(directorsCount).reduce((a, b) => directorsCount[a] > directorsCount[b] ? a : b);
     
@@ -98,6 +108,7 @@ function renderLibrary() {
 // Cargar al inicio
 renderLibrary();
 calculateStats();
+
 
 
 
