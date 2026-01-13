@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CinePro Ultra - Filmaffinity Edition</title>
+    <title>CinePro - Filmaffinity Mode</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css?v=4.0">
+    <link rel="stylesheet" href="style.css?v=5.0">
 </head>
 <body>
 
@@ -31,52 +31,49 @@
     </nav>
 
     <main>
-        <div class="search-container" id="contenedor-busqueda" style="display:none;">
-            <input type="text" id="buscador" placeholder="🔍 Buscar..." oninput="ejecutarBusqueda()">
+        <div class="search-container" id="contenedor-busqueda" style="display:none; padding: 0 15px;">
+            <input type="text" id="buscador" placeholder="🔍 Buscar en mi lista..." oninput="ejecutarBusqueda()">
         </div>
 
         <section id="seccion-inicio" class="container">
-            <div class="welcome-card">
-                <h2>¡Bienvenido!</h2>
+            <div class="welcome-card" style="background:var(--card-bg); padding:30px; border-radius:15px; text-align:center;">
+                <h2>🎬 Mi Cine Personal</h2>
+                <p>Gestiona tu biblioteca con datos reales de Directores y Actores.</p>
                 <button onclick="mostrarSeccion('nueva-peli')" class="btn-save bg-red">Añadir Película</button>
             </div>
         </section>
 
         <section id="nueva-peli" class="container" style="display:none;">
-            <h2>Nueva Película</h2>
+            <h2>Añadir a la Biblioteca</h2>
             <form id="form-pelicula">
                 <input type="hidden" id="edit-id">
-                <div class="input-group"><label>Título</label><input type="text" id="titulo" required></div>
+                <div class="input-group"><label>Título de la Película</label><input type="text" id="titulo" required></div>
                 
                 <div class="grid-2">
                     <div class="input-group">
-                        <label>Director 🔍</label>
-                        <input type="text" id="nombreDirector" onblur="buscarEnTMDB(this.value, 'director')">
+                        <label>Director (Escribe y pulsa fuera) 🔍</label>
+                        <input type="text" id="nombreDirector" onblur="buscarDatosTMDB(this.value, 'director')">
                     </div>
-                    <div class="input-group"><label>Foto Director (URL)</label><input type="text" id="fotoDirector"></div>
+                    <div class="input-group"><label>URL Foto</label><input type="text" id="fotoDirector"></div>
                 </div>
-                <input type="hidden" id="nacimientoDirector">
-                <input type="hidden" id="origenDirector">
-                <input type="hidden" id="bioDirector">
+                <input type="hidden" id="nacDirector"><input type="hidden" id="oriDirector"><input type="hidden" id="bioDirector">
 
                 <div class="input-group">
-                    <label>Reparto</label>
+                    <label>Reparto (Actores)</label>
                     <div id="contenedor-actores"></div>
                     <button type="button" onclick="agregarCampoActor()" class="btn-add-actor">+ Añadir Actor</button>
                 </div>
 
-                <div class="input-group"><label>Portada (URL)</label><input type="text" id="fotoPortada"></div>
-                <div class="grid-2">
-                    <div class="input-group"><label>Género</label><input type="text" id="genero"></div>
+                <div class="grid-3">
                     <div class="input-group"><label>Año</label><input type="number" id="anio"></div>
-                </div>
-                <div class="grid-2">
                     <div class="input-group"><label>Nota</label><input type="number" id="nota" step="0.1"></div>
-                    <div class="input-group"><label>Plataforma</label><input type="text" id="plataforma"></div>
+                    <div class="input-group"><label>Género</label><input type="text" id="genero"></div>
                 </div>
+                <div class="input-group"><label>URL Portada</label><input type="text" id="fotoPortada"></div>
+
                 <div class="grid-2">
-                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">VISTA</button>
-                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">PENDIENTE</button>
+                    <button type="button" onclick="validarYGuardar('vista')" class="btn-save bg-green">GUARDAR COMO VISTA</button>
+                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save bg-yellow">A PENDIENTES</button>
                 </div>
             </form>
         </section>
@@ -102,8 +99,7 @@
     </main>
 
     <div id="modal-img" class="modal" onclick="this.style.display='none'"><img id="img-ampliada"></div>
-    
-    <script src="script.js?v=4.0"></script>
+    <script src="script.js?v=5.0"></script>
 </body>
 </html>
 
