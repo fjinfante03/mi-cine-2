@@ -105,15 +105,15 @@ main { margin-top: 80px; padding-bottom: 80px; }
 
 .plataforma-tag {
     display: inline-block;
-    background: #333;
-    color: #fff;
+    color: white;
     font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    margin-top: 6px;
-    border: 1px solid #444;
-    font-weight: bold;
+    padding: 3px 10px;
+    border-radius: 20px; /* Estilo píldora */
+    margin-top: 8px;
+    font-weight: 800;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 
