@@ -3,22 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cine Fix</title>
+    <title>Cine Fix Corregido</title>
     <style>
-        /* CSS INTEGRADO PARA EVITAR ERRORES DE CARGA */
         body { background: #000; color: white; font-family: sans-serif; margin: 0; }
-        header { background: #111; padding: 15px; display: flex; align-items: center; border-bottom: 2px solid red; }
-        .menu-btn { font-size: 25px; color: red; cursor: pointer; margin-right: 20px; border: 1px solid red; padding: 5px 10px; border-radius: 5px; }
-        
-        #side-menu { position: fixed; left: -260px; top: 0; width: 250px; height: 100%; background: #111; transition: 0.3s; z-index: 9999; border-right: 2px solid red; padding-top: 50px; }
+        header { background: #111; padding: 15px; display: flex; align-items: center; border-bottom: 2px solid #e50914; }
+        .menu-btn { font-size: 25px; color: #e50914; cursor: pointer; margin-right: 20px; border: 1px solid #e50914; padding: 5px 10px; border-radius: 5px; }
+        #side-menu { position: fixed; left: -260px; top: 0; width: 250px; height: 100%; background: #111; transition: 0.3s; z-index: 9999; border-right: 2px solid #e50914; padding-top: 50px; }
         #side-menu a { display: block; padding: 15px; color: white; text-decoration: none; border-bottom: 1px solid #222; font-weight: bold; }
-        
         .container { padding: 20px; display: none; }
-        #inicio { display: block; text-align: center; }
-        
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; background: #222; color: white; border: 1px solid #444; box-sizing: border-box; }
-        button { background: red; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; width: 100%; margin-top: 10px; }
-        
+        /* Botón de buscar en rojo brillante para que se vea activo */
+        .btn-buscar { background: #e50914 !important; color: white !important; cursor: pointer !important; opacity: 1 !important; }
+        button { background: #e50914; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .peli-card { background: #111; border: 1px solid #333; border-radius: 8px; text-align: center; font-size: 12px; padding-bottom: 10px; }
         .peli-card img { width: 100%; border-radius: 8px 8px 0 0; }
@@ -28,26 +24,26 @@
 
     <header>
         <div class="menu-btn" onclick="toggleM()">☰</div>
-        <h2 style="margin:0; color:red;">MI CINE</h2>
+        <h2 style="margin:0; color:#e50914;">MI CINE</h2>
     </header>
 
     <nav id="side-menu">
-        <div onclick="toggleM()" style="text-align:right; padding:10px; color:red; font-size:30px;">×</div>
+        <div onclick="toggleM()" style="text-align:right; padding:10px; color:#e50914; font-size:30px;">×</div>
         <a href="#" onclick="sec('inicio')">INICIO</a>
         <a href="#" onclick="sec('add')">AÑADIR PELÍCULA</a>
         <a href="#" onclick="sec('lista')">MI LISTA</a>
     </nav>
 
     <main>
-        <section id="inicio" class="container">
+        <section id="inicio" class="container" style="display:block; text-align:center;">
             <h1>Bienvenido</h1>
             <button onclick="sec('add')">EMPEZAR</button>
         </section>
 
         <section id="add" class="container">
             <h3>Nueva Película</h3>
-            <input type="text" id="api-q" placeholder="Buscar título...">
-            <button onclick="buscar()" style="background:#333;">BUSCAR EN RED</button>
+            <input type="text" id="api-q" placeholder="Escribe el nombre aquí...">
+            <button onclick="buscar()" class="btn-buscar">BUSCAR EN RED</button>
             <div id="results" style="background:#111; margin-top:10px;"></div>
             <hr style="margin:20px 0; border-color: #333;">
             <input type="text" id="tit" placeholder="Título">
@@ -62,7 +58,6 @@
     </main>
 
     <script>
-        // JAVASCRIPT INTEGRADO - SIN DEPENDENCIAS EXTERNAS
         let db;
         const req = indexedDB.open("CineStore", 1);
         req.onupgradeneeded = (e) => e.target.result.createObjectStore("pelis", { keyPath: "id", autoIncrement: true });
@@ -70,56 +65,49 @@
 
         function toggleM() {
             const m = document.getElementById("side-menu");
-            m.style.left = (m.style.left === "0px") ? "-260px" : "0px";
+            m.style.left = (m.style.left === "0px" || m.style.left === "") ? "-260px" : "0px";
         }
 
         function sec(id) {
             document.querySelectorAll('.container').forEach(s => s.style.display = 'none');
             document.getElementById(id).style.display = 'block';
-            toggleM();
+            document.getElementById("side-menu").style.left = "-260px";
         }
 
         async function buscar() {
-            // 1. Cogemos el texto del buscador
             const q = document.getElementById('api-q').value; 
             if(!q) return alert("Escribe el nombre de una peli");
             
             const d = document.getElementById('results');
-            d.innerHTML = "<p style='color:yellow; font-size:12px;'>Buscando en la base de datos...</p>";
+            d.innerHTML = "<p style='color:yellow;'>Buscando...</p>";
             d.style.display = "block";
 
             try {
-                // 2. Llamamos a la API (TMDB)
                 const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=854e46049386f788b77a1188730b200b&query=${encodeURIComponent(q)}&language=es-ES`);
                 const data = await res.json();
-                
-                d.innerHTML = ""; // Limpiamos el mensaje de espera
+                d.innerHTML = ""; 
 
                 if (!data.results || data.results.length === 0) {
-                    d.innerHTML = "<p style='color:white; padding:10px;'>No se encontró nada. Revisa el nombre.</p>";
+                    d.innerHTML = "<p>No hay resultados.</p>";
                     return;
                 }
 
-                // 3. Mostramos los 3 primeros resultados
                 data.results.slice(0, 3).forEach(p => {
                     const btn = document.createElement('div');
                     btn.style = "padding:12px; border-bottom:1px solid #333; cursor:pointer; background:#222; margin-bottom:5px; border-radius:5px;";
-                    const anio = p.release_date ? p.release_date.split('-')[0] : '¿?';
-                    btn.innerHTML = `<strong>${p.title}</strong> <small style='color:#888'>(${anio})</small>`;
-                    
-                    // Al hacer clic, se rellenan los campos de abajo
+                    btn.innerHTML = `<strong>${p.title}</strong>`;
                     btn.onclick = () => {
                         document.getElementById('tit').value = p.title;
-                        // Busca esta línea y déjala así:
-                        document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "https://via.placeholder.com/500x750?text=Sin+Portada";
+                        document.getElementById('img').value = p.poster_path ? "https://image.tmdb.org/t/p/w500" + p.poster_path : "";
                         d.style.display = "none";
                     };
                     d.appendChild(btn);
                 });
             } catch (err) {
-                d.innerHTML = "<p style='color:red;'>Error de conexión. Inténtalo de nuevo.</p>";
+                d.innerHTML = "<p>Error de red.</p>";
             }
-        }
+        } // <--- ESTA LLAVE ES LA QUE FALTABA
+
         function guardar() {
             const t = document.getElementById('tit').value;
             const i = document.getElementById('img').value;
@@ -127,7 +115,7 @@
             const tx = db.transaction("pelis", "readwrite");
             tx.objectStore("pelis").add({titulo: t, imagen: i});
             tx.oncomplete = () => {
-                alert("Guardado");
+                alert("¡Pelicula Guardada!");
                 render();
                 sec('lista');
             };
@@ -146,10 +134,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
