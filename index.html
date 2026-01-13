@@ -3,58 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Cine</title>
-    <link rel="stylesheet" href="style.css?v=20">
+    <title>Mi Cine Pro</title>
+    <link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 
     <header>
-        <div class="menu-icon" onclick="toggleMenu()">☰</div>
-        <h1 onclick="mostrarSeccion('seccion-inicio')">MI CINE</h1>
+        <div class="menu-icon" onclick="toggleMenu()" style="cursor:pointer; font-size:30px; padding:10px;">☰</div>
+        <h1 onclick="mostrarSeccion('inicio')">MI CINE</h1>
     </header>
 
-    <nav id="side-menu" class="side-menu">
-        <div class="menu-header">
-            <h2>Menú</h2>
-            <span onclick="toggleMenu()" style="cursor:pointer;">×</span>
-        </div>
-        <a href="#" onclick="mostrarSeccion('seccion-inicio')">🏠 Inicio</a>
-        <a href="#" onclick="mostrarSeccion('nueva-peli')">➕ Añadir Película</a>
-        <a href="#" onclick="mostrarSeccion('seccion-listado')">📚 Mi Lista</a>
+    <nav id="side-menu" class="side-menu" style="position:fixed; left:-250px; transition:0.3s; background:#111; height:100%; width:250px; z-index:1000; padding:20px;">
+        <h2 style="color:white;">Menú</h2>
+        <a href="#" onclick="mostrarSeccion('inicio')" style="display:block; color:white; padding:10px 0;">🏠 Inicio</a>
+        <a href="#" onclick="mostrarSeccion('nueva-peli')" style="display:block; color:white; padding:10px 0;">➕ Añadir Película</a>
+        <a href="#" onclick="mostrarSeccion('listado')" style="display:block; color:white; padding:10px 0;">📚 Mis Películas</a>
     </nav>
 
     <main>
-        <section id="seccion-inicio" class="container">
-            <div style="text-align:center; padding:50px 20px;">
-                <h2>Bienvenido</h2>
-                <button onclick="mostrarSeccion('nueva-peli')" style="padding:15px; background:red; color:white; border:none; border-radius:10px;">Añadir Película</button>
-            </div>
+        <section id="inicio" class="container" style="text-align:center; padding-top:50px;">
+            <h2>Bienvenido</h2>
+            <button onclick="mostrarSeccion('nueva-peli')" style="background:red; color:white; border:none; padding:15px; border-radius:10px;">COMENZAR</button>
         </section>
 
-        <section id="nueva-peli" class="container" style="display:none;">
+        <section id="nueva-peli" class="container" style="display:none; padding:20px;">
             <div style="background:#222; padding:15px; border-radius:10px; margin-bottom:20px;">
-                <input type="text" id="input-api" placeholder="Buscar peli en internet..." style="width:70%; padding:10px;">
+                <input type="text" id="input-api" placeholder="Buscar peli..." style="width:60%; padding:10px;">
                 <button onclick="buscarPeliEnAPI()" style="padding:10px; background:red; color:white; border:none;">BUSCAR</button>
-                <div id="resultados-api" style="display:none; background:#111; margin-top:10px;"></div>
+                <div id="resultados-api" style="background:#111; margin-top:10px; display:none;"></div>
             </div>
 
             <form id="form-pelicula">
-                <input type="text" id="titulo" placeholder="Título" required style="width:100%; margin-bottom:10px; padding:10px;">
+                <input type="text" id="titulo" placeholder="Título" style="width:100%; margin-bottom:10px; padding:10px;">
                 <input type="text" id="fotoPortada" placeholder="URL Portada" style="width:100%; margin-bottom:10px; padding:10px;">
-                <button type="button" onclick="validarYGuardar('vista')" style="width:100%; padding:15px; background:green; color:white; border:none;">GUARDAR</button>
+                <button type="button" onclick="guardarPeli()" style="width:100%; padding:15px; background:green; color:white; border:none; border-radius:10px;">GUARDAR</button>
             </form>
         </section>
 
-        <section id="seccion-listado" class="container" style="display:none;">
+        <section id="listado" class="container" style="display:none; padding:20px;">
             <h2>Mis Películas</h2>
             <div id="lista-peliculas" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
         </section>
     </main>
 
-    <script src="script.js?v=20"></script>
+    <script src="script.js?v=30"></script>
 </body>
 </html>
-
 
 
 
