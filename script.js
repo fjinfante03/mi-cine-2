@@ -99,12 +99,9 @@ function validarYGuardar(estado) {
 function cargarPeliculas(filtro = "") {
     const lista = document.getElementById('lista-peliculas');
     if (!lista) return;
-
-    // LIMPIEZA TOTAL: Mientras tenga hijos, los borra. 
-    // Esto es más seguro que innerHTML = "" en algunos móviles.
-    while (lista.firstChild) {
-        lista.removeChild(lista.firstChild);
-    }
+    
+    // Limpieza total del contenedor antes de empezar
+    lista.innerHTML = ""; 
 
     const tx = db.transaction("peliculas", "readonly");
     const store = tx.objectStore("peliculas");
@@ -112,31 +109,46 @@ function cargarPeliculas(filtro = "") {
     store.getAll().onsuccess = (e) => {
         let pelis = e.target.result;
         
-        // Filtrar por tab activa
+        // 1. Filtro de pestañas
         if (currentTab !== 'todas') {
             pelis = pelis.filter(p => p.estado === currentTab);
         }
-        
-        // Filtrar por buscador
-        if (filtro) {
-            const f = filtro.toLowerCase();
-            pelis = pelis.filter(p => p.titulo.toLowerCase().includes(f));
-        }
+
+        // 2. FILTRO ANTI-DUPLICADOS (El Rescate)
+        // Creamos una lista limpia donde no se repiten títulos
+        const titulosVistos = new Set();
+        const pelisUnicas = [];
 
         pelis.forEach(p => {
+            const tituloNormalizado = p.titulo.trim().toLowerCase();
+            if (!titulosVistos.has(tituloNormalizado)) {
+                titulosVistos.add(tituloNormalizado);
+                pelisUnicas.push(p);
+            }
+        });
+
+        // 3. Renderizamos solo las únicas
+        pelisUnicas.forEach(p => {
             const div = document.createElement('div');
             div.className = 'card-peli';
             div.innerHTML = `
-                <img src="${p.fotoPortada}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
+                <div style="position:relative;">
+                    <img src="${p.fotoPortada || 'https://via.placeholder.com/150'}" class="img-peli" onclick="ampliar('${p.fotoPortada}')">
+                    ${p.estado === 'vista' ? `<div class="nota-badge">⭐ ${p.nota}</div>` : ''}
+                </div>
                 <div style="padding:10px;">
                     <h4 style="margin:0; font-size:14px;">${p.titulo}</h4>
                     <div style="display:flex; justify-content:space-between; margin-top:10px;">
-                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:20px;">✏️</button>
-                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:20px;">🗑️</button>
+                        <button onclick="editar(${p.id})" style="background:none; border:none; color:cyan; font-size:18px;">✏️</button>
+                        <button onclick="eliminar(${p.id})" style="background:none; border:none; color:red; font-size:18px;">🗑️</button>
                     </div>
                 </div>`;
             lista.appendChild(div);
         });
+
+        if (pelisUnicas.length === 0) {
+            lista.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#555;">No hay películas aquí.</p>`;
+        }
     };
 }
 
@@ -166,6 +178,7 @@ function agregarCampoActor() {
     const div = document.createElement('div');
     div.className = "actor-card-form";
     div.innerHTML = `<input type="text" class="nombre-actor" placeholder="Actor"><input type="text" class="foto-actor" placeholder="URL Foto"><button
+
 
 
 
