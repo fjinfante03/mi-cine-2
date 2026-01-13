@@ -42,17 +42,23 @@ function ejecutarBusqueda() {
     else if (document.getElementById('seccion-actores').style.display !== 'none') generarPersonas('actor', busqueda);
 }
 
-function validarYGuardar(estado) {
-    const btnVista = document.querySelector('.bg-green');
-    const btnPendiente = document.querySelector('.bg-yellow');
-    const idInput = document.getElementById('edit-id');
+let guardando = false; // Variable de control global
 
-    // 1. Evitar clics dobles desactivando botones temporalmente
-    btnVista.disabled = true;
-    btnPendiente.disabled = true;
+function validarYGuardar(estado) {
+    if (guardando) return; // Si ya se está guardando, ignoramos el clic
+
+    const idInput = document.getElementById('edit-id');
+    const titulo = document.getElementById('titulo').value.trim();
+
+    if (!titulo) {
+        alert("El título es obligatorio");
+        return;
+    }
+
+    guardando = true; // Bloqueamos futuros clics
 
     const peli = {
-        titulo: document.getElementById('titulo').value.trim(),
+        titulo: titulo,
         nombreDirector: document.getElementById('nombreDirector').value,
         fotoDirector: document.getElementById('fotoDirector').value,
         reparto: Array.from(document.querySelectorAll('.actor-card-form')).map(f => ({
@@ -69,6 +75,36 @@ function validarYGuardar(estado) {
         nacionalidad: document.getElementById('nacionalidad').value,
         estado: estado
     };
+
+    const tx = db.transaction("peliculas", "readwrite");
+    const store = tx.objectStore("peliculas");
+
+    if (idInput.value) { 
+        peli.id = parseInt(idInput.value); 
+        store.put(peli); 
+    } else { 
+        store.add(peli); 
+    }
+
+    tx.oncomplete = () => {
+        // Limpiamos todo el formulario de inmediato
+        document.getElementById('form-pelicula').reset();
+        idInput.value = "";
+        document.getElementById('contenedor-actores').innerHTML = "";
+        
+        guardando = false; // Liberamos el bloqueo
+        
+        // Vamos al listado y forzamos la carga de la pestaña correcta
+        currentTab = estado;
+        mostrarSeccion('listado');
+        cambiarTab(estado);
+    };
+
+    tx.onerror = () => {
+        guardando = false;
+        alert("Error al guardar");
+    };
+}
 
     if (!peli.titulo) {
         alert("El título es obligatorio");
@@ -349,6 +385,7 @@ function importarDatos(input) {
 
     lector.readAsText(archivo);
 }
+
 
 
 
