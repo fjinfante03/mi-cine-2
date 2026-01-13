@@ -78,7 +78,31 @@
 
                 <div class="grid-2">
                     <button type="button" onclick="validarYGuardar('vista')" class="btn-save" style="background:#28a745;">VISTA</button>
-                    <button type="button" onclick="validarYGuardar('
+                    <button type="button" onclick="validarYGuardar('pendiente')" class="btn-save" style="background:#ffc107; color:black; padding:15px; border:none; border-radius:8px; font-weight:bold;">A PENDIENTES</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="seccion-listado" class="container" style="display:none;">
+            <div id="lista-peliculas" class="grid-peliculas" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+        </section>
+
+        <section id="seccion-directores" class="container" style="display:none;"><h2>Directores</h2><div id="lista-directores"></div></section>
+        <section id="seccion-actores" class="container" style="display:none;"><h2>Actores</h2><div id="lista-actores"></div></section>
+
+        <section id="seccion-inicio" class="container">
+            <div style="text-align:center; padding:50px 20px;">
+                <h2 style="color:#e50914;">¡Bienvenido a tu Cine!</h2>
+                <p>Usa el buscador automático para añadir pelis rápido.</p>
+                <button onclick="mostrarSeccion('nueva-peli')" style="background:#e50914; color:white; padding:15px 30px; border:none; border-radius:30px; font-weight:bold; cursor:pointer;">EMPEZAR</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js?v=10.0"></script>
+</body>
+</html>
+
 
 
 
