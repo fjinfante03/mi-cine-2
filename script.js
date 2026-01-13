@@ -43,9 +43,16 @@ function ejecutarBusqueda() {
 }
 
 function validarYGuardar(estado) {
+    const btnVista = document.querySelector('.bg-green');
+    const btnPendiente = document.querySelector('.bg-yellow');
     const idInput = document.getElementById('edit-id');
+
+    // 1. Evitar clics dobles desactivando botones temporalmente
+    btnVista.disabled = true;
+    btnPendiente.disabled = true;
+
     const peli = {
-        titulo: document.getElementById('titulo').value,
+        titulo: document.getElementById('titulo').value.trim(),
         nombreDirector: document.getElementById('nombreDirector').value,
         fotoDirector: document.getElementById('fotoDirector').value,
         reparto: Array.from(document.querySelectorAll('.actor-card-form')).map(f => ({
@@ -63,11 +70,17 @@ function validarYGuardar(estado) {
         estado: estado
     };
 
-    if (!peli.titulo) return alert("El título es necesario");
+    if (!peli.titulo) {
+        alert("El título es obligatorio");
+        btnVista.disabled = false;
+        btnPendiente.disabled = false;
+        return;
+    }
 
     const tx = db.transaction("peliculas", "readwrite");
     const store = tx.objectStore("peliculas");
-    
+
+    // 2. Si hay ID, es una edición (actualiza). Si no, es nueva (añade).
     if (idInput.value) { 
         peli.id = parseInt(idInput.value); 
         store.put(peli); 
@@ -76,10 +89,25 @@ function validarYGuardar(estado) {
     }
 
     tx.oncomplete = () => {
+        // 3. LIMPIEZA TOTAL PARA EVITAR DUPLICADOS
         document.getElementById('form-pelicula').reset();
-        idInput.value = "";
-        document.getElementById('contenedor-actores').innerHTML = "";
+        idInput.value = ""; // Vaciamos el ID oculto
+        document.getElementById('contenedor-actores').innerHTML = ""; // Vaciamos los actores
+        
+        // Reactivamos botones
+        btnVista.disabled = false;
+        btnPendiente.disabled = false;
+
+        // Cambiamos a la pestaña correspondiente y refrescamos
+        currentTab = estado;
         mostrarSeccion('listado');
+        cambiarTab(estado);
+    };
+
+    tx.onerror = () => {
+        alert("Error al guardar");
+        btnVista.disabled = false;
+        btnPendiente.disabled = false;
     };
 }
 
@@ -321,6 +349,7 @@ function importarDatos(input) {
 
     lector.readAsText(archivo);
 }
+
 
 
 
