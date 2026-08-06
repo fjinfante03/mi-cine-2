@@ -673,3 +673,64 @@ function importarColeccion(event) {
   };
   fileReader.readAsText(event.target.files[0]);
 }
+// Función para re-sincronizar y completar actores/directores/productores en películas viejas
+async function reSincronizarPeliculas() {
+  if (miColeccion.length === 0) {
+    alert("No hay películas guardadas.");
+    return;
+  }
+
+  if (!confirm("Se van a actualizar los datos del reparto y equipo técnico de tus películas antiguas sin borrar tus notas. ¿Deseas continuar?")) {
+    return;
+  }
+
+  alert("Iniciando sincronización... Por favor espera unos segundos.");
+
+  for (let peli of miColeccion) {
+    try {
+      const res = await fetch(`${TMDB_BASE_URL}/movie/${peli.id}/credits?api_key=${TMDB_API_KEY}&language=es-ES`);
+      const credits = await res.json();
+
+      if (credits.cast && credits.crew) {
+        // Directores
+        peli.directores = credits.crew
+          .filter(c => c.job === 'Director')
+          .map(c => ({
+            nombre: c.name,
+            foto: c.profile_path ? `${TMDB_IMAGE_URL}${c.profile_path}` : null
+          }));
+
+        // Guionistas
+        peli.guionistas = credits.crew
+          .filter(c => c.job === 'Screenplay' || c.job === 'Writer' || c.job === 'Author')
+          .map(c => ({
+            nombre: c.name,
+            foto: c.profile_path ? `${TMDB_IMAGE_URL}${c.profile_path}` : null
+          }));
+
+        // Productores
+        peli.productores = credits.crew
+          .filter(c => c.job === 'Producer' || c.job === 'Executive Producer')
+          .map(c => ({
+            nombre: c.name,
+            foto: c.profile_path ? `${TMDB_IMAGE_URL}${c.profile_path}` : null
+          }));
+
+        // Actores principales (Top 10)
+        peli.actores = credits.cast
+          .slice(0, 10)
+          .map(c => ({
+            nombre: c.name,
+            foto: c.profile_path ? `${TMDB_IMAGE_URL}${c.profile_path}` : null
+          }));
+      }
+    } catch (e) {
+      console.error(`Error actualizando ${peli.titulo}:`, e);
+    }
+  }
+
+  // Guardar en Firebase los datos actualizados
+  await guardarEnFirebase();
+  renderizarColeccion(miColeccion);
+  alert("¡Sincronización completada con éxito! Ahora tus listas de actores y equipo están al 100%.");
+}
