@@ -348,21 +348,23 @@ function renderizarPantallaGrupo(propiedad) {
     });
   });
 
+  // Calcular nota promedio para cada persona
   const personasArray = Array.from(mapaPersonas.values()).map(persona => {
     const sumaNotas = persona.peliculas.reduce((acc, p) => acc + (p.notaPersonal || 0), 0);
     const notaPromedio = (sumaNotas / persona.peliculas.length).toFixed(1);
     return {
       ...persona,
-      notaPromedio: notaPromedio
+      notaPromedio: parseFloat(notaPromedio) // Guardamos como número para comparar correctamente
     };
   });
 
-  personasArray.sort((a, b) => b.peliculas.length - a.peliculas.length);
-
-  if (personasArray.length === 0) {
-    contenedor.innerHTML = `<p class="col-span-full text-center text-slate-500 py-12">Aún no hay registros disponibles en esta sección.</p>`;
-    return;
-  }
+  // 🎯 ORDENAR: Primero por cantidad de películas (descendente), luego por nota promedio (descendente)
+  personasArray.sort((a, b) => {
+    if (b.peliculas.length !== a.peliculas.length) {
+      return b.peliculas.length - a.peliculas.length; // 1º Criterio: Cantidad de películas
+    }
+    return b.notaPromedio - a.notaPromedio; // 2º Criterio: Nota promedio (en caso de empate)
+  });
 
   contenedor.innerHTML = personasArray.map(persona => {
     const miniPostersHtml = persona.peliculas.map(p => `
