@@ -137,6 +137,11 @@ function cambiarSeccion(seccionId) {
     document.getElementById('sec-grupo').classList.remove('hidden');
     renderizarPantallaGrupo(seccionId);
   }
+
+  if (seccionId === 'estadisticas') {
+    actualizarEstadisticasYTops(miColeccion); // Usamos la variable donde guardas tu array de películas
+  }
+  
 }
 
 function volverAGrupoActual() {
@@ -843,4 +848,103 @@ function renderizarEstadisticas() {
 
   const elemDecada = document.getElementById('stat-decada-fav');
   if (elemDecada) elemDecada.textContent = decadaFav;
+}
+
+function actualizarEstadisticasYTops(peliculas) {
+  // Si no le pasamos películas explícitamente, intenta buscar las variables globales más comunes
+  if (!peliculas || !Array.isArray(peliculas)) {
+    if (typeof coleccion !== 'undefined' && Array.isArray(coleccion)) peliculas = coleccion;
+    else if (typeof peliculasGuardadas !== 'undefined' && Array.isArray(peliculasGuardadas)) peliculas = peliculasGuardadas;
+    else if (typeof misPelis !== 'undefined' && Array.isArray(misPelis)) peliculas = misPelis;
+  }
+
+  const ulActores = document.getElementById('lista-top-actores');
+  const ulDirectores = document.getElementById('lista-top-directores');
+
+  if (!ulActores || !ulDirectores) return;
+
+  if (!peliculas || !Array.isArray(peliculas) || peliculas.length === 0) {
+    ulActores.innerHTML = `<li class="text-slate-500 italic text-xs p-2">No hay películas registradas</li>`;
+    ulDirectores.innerHTML = `<li class="text-slate-500 italic text-xs p-2">No hay películas registradas</li>`;
+    return;
+  }
+
+  const actoresConteo = {};
+  const directoresRatings = {};
+
+  peliculas.forEach(peli => {
+    const nota = parseFloat(peli.notaPersonal || peli.nota || peli.rating || 0);
+
+    // 1. Actores
+    const actores = peli.actores || peli.cast || peli.reparto || [];
+    if (Array.isArray(actores)) {
+      actores.forEach(actor => {
+        const nombre = typeof actor === 'string' ? actor : (actor.nombre || actor.name);
+        if (nombre) actoresConteo[nombre] = (actoresConteo[nombre] || 0) + 1;
+      });
+    }
+
+    // 2. Directores
+    const directores = peli.directores || peli.director || peli.direccion || [];
+    const dirsArr = Array.isArray(directores) ? directores : [directores];
+    
+    dirsArr.forEach(director => {
+      const nombre = typeof director === 'string' ? director : (director.nombre || director.name);
+      if (nombre) {
+        if (!directoresRatings[nombre]) {
+          directoresRatings[nombre] = { totalNotas: 0, cantidadConNota: 0, totalPelis: 0 };
+        }
+        directoresRatings[nombre].totalPelis += 1;
+        if (nota > 0) {
+          directoresRatings[nombre].totalNotas += nota;
+          directoresRatings[nombre].cantidadConNota += 1;
+        }
+      }
+    });
+  });
+
+  // Render Actores
+  const topActores = Object.entries(actoresConteo)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  ulActores.innerHTML = topActores.length === 0 
+    ? `<li class="text-slate-500 italic text-xs p-2">Sin datos de actores</li>`
+    : topActores.map(([nombre, count], index) => `
+      <li class="flex justify-between items-center bg-slate-900/80 p-2 rounded-lg border border-slate-800 my-1">
+        <span class="font-medium text-slate-200 text-xs sm:text-sm">
+          <strong class="text-amber-500 mr-1.5">#${index + 1}</strong> ${nombre}
+        </span>
+        <span class="text-xs bg-amber-500/10 text-amber-400 font-semibold px-2 py-0.5 rounded-full border border-amber-500/20">
+          ${count} ${count === 1 ? 'peli' : 'pelis'}
+        </span>
+      </li>
+    `).join('');
+
+  // Render Directores
+  const topDirectores = Object.entries(directoresRatings)
+    .map(([nombre, datos]) => ({
+      nombre,
+      promedio: datos.cantidadConNota > 0 ? (datos.totalNotas / datos.cantidadConNota).toFixed(1) : 'S/N',
+      totalPelis: datos.totalPelis
+    }))
+    .sort((a, b) => {
+      if (a.promedio === 'S/N') return 1;
+      if (b.promedio === 'S/N') return -1;
+      return b.promedio - a.promedio || b.totalPelis - a.totalPelis;
+    })
+    .slice(0, 5);
+
+  ulDirectores.innerHTML = topDirectores.length === 0 
+    ? `<li class="text-slate-500 italic text-xs p-2">Sin datos de directores</li>`
+    : topDirectores.map((dir, index) => `
+      <li class="flex justify-between items-center bg-slate-900/80 p-2 rounded-lg border border-slate-800 my-1">
+        <span class="font-medium text-slate-200 text-xs sm:text-sm">
+          <strong class="text-amber-500 mr-1.5">#${index + 1}</strong> ${dir.nombre}
+        </span>
+        <span class="text-xs bg-amber-400/10 text-amber-400 font-bold px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1">
+          ⭐ ${dir.promedio} <span class="text-slate-500 font-normal">(${dir.totalPelis})</span>
+        </span>
+      </li>
+    `).join('');
 }
