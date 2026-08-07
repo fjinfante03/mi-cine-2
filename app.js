@@ -734,3 +734,167 @@ async function reSincronizarPeliculas() {
   renderizarColeccion(miColeccion);
   alert("¡Sincronización completada con éxito! Ahora tus listas de actores y equipo están al 100%.");
 }
+
+function aplicarFiltrosYOrden() {
+  const generoSel = document.getElementById('filtro-genero').value;
+  const decadaSel = document.getElementById('filtro-decada').value;
+  const notaMin = parseFloat(document.getElementById('filtro-nota').value) || 0;
+  const criterioOrden = document.getElementById('orden-coleccion').value;
+
+  let filtradas = miColeccion.filter(p => (p.estado || 'vista') === 'vista');
+
+  // 1. Filtrar por Género
+  if (generoSel !== 'todos') {
+    filtradas = filtradas.filter(p => p.generos && p.generos.includes(generoSel));
+  }
+
+  // 2. Filtrar por Década
+  if (decadaSel !== 'todas') {
+    filtradas = filtradas.filter(p => {
+      const anio = parseInt(p.anio);
+      if (isNaN(anio)) return false;
+      if (decadaSel === 'antiguas') return anio < 1970;
+      const decadaNum = parseInt(decadaSel);
+      return anio >= decadaNum && anio < decadaNum + 10;
+    });
+  }
+
+  // 3. Filtrar por Nota Mínima
+  if (notaMin > 0) {
+    filtradas = filtradas.filter(p => (p.notaPersonal || 0) >= notaMin);
+  }
+
+  // 4. Ordenar
+  filtradas.sort((a, b) => {
+    switch (criterioOrden) {
+      case 'nota-desc':
+        return (b.notaPersonal || 0) - (a.notaPersonal || 0);
+      case 'estreno-desc':
+        return (parseInt(b.anio) || 0) - (parseInt(a.anio) || 0);
+      case 'estreno-asc':
+        return (parseInt(a.anio) || 0) - (parseInt(b.anio) || 0);
+      case 'duracion-desc':
+        return (b.runtime || 0) - (a.runtime || 0);
+      case 'duracion-asc':
+        return (a.runtime || 0) - (b.runtime || 0);
+      case 'recientes':
+      default:
+        return (b.fechaAgregado || 0) - (a.fechaAgregado || 0);
+    }
+  });
+
+  renderizarGridColeccion(filtradas);
+}
+
+let chartInstance = null;
+
+function renderizarEstadisticas() {
+  const vistas = miColeccion.filter(p => (p.estado || 'vista') === 'vista');
+
+  // Total películas
+  document.getElementById('stat-total-pelis').textContent = vistas.length;
+
+  // 1. Tiempo Total Invertido
+  const minutosTotales = vistas.reduce((acc, p) => acc + (p.runtime || 0), 0);
+  const dias = Math.floor(minutosTotales / (60 * 24));
+  const horas = Math.floor((minutosTotales % (60 * 24)) / 60);
+  document.getElementById('stat-tiempo-total').textContent = `${dias}d ${horas}h (${minutosTotales} min)`;
+
+  // 2. Década Favorita
+  const conteoDecadas = {};
+  vistas.forEach(p => {
+    const anio = parseInt(p.anio);
+    if (!isNaN(anio)) {
+      const decada = Math.floor(anio / 10) * 10;
+      conteoDecadas[`${decada}s`] = (conteoDecadas[`${decada}s`] || 0) + 1;
+    }
+  });
+  const decadaFav = Object.keys(conteoDecadas).reduce((a, b) => conteoDecadas[a] > conteoDecadas[b] ? a : b, '-');
+  document.getElementById('stat-decada-fav').textContent = decadaFav;
+
+  // 3. Gráfico de Calificaciones (1 al 10)
+  const conteoNotas = Array(10).fill(0);
+  vistas.forEach(p => {
+    const nota = Math.round(p.notaPersonal || 0);
+    if (nota >= 1 && nota <= 10) conteoNotas[nota - 1]++;
+  });
+
+  const ctx = document.getElementById('chartCalificaciones').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['1★', '2★', '3★', '4★', '5★', '6★', '7★', '8★', '9★', '10★'],
+      datasets: [{
+        label: 'Nº de Películas',
+        data: conteoNotas,
+        backgroundColor: '#f59e0b',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0, color: '#94a3b8' } },
+        x: { ticks: { color: '#94a3b8' } }
+      }
+    }
+  });
+}
+
+async function obtenerWatchProviders(movieId) {
+  try {
+    const res = await fetch(`${TMDB_BASE_URL}/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`);
+    const data = await res.json();
+    // Proveedores para España (ES) - Ajustable si se requiere otra región
+    const es = data.results?.ES; 
+    if (!es) return null;
+
+    const flatrate = es.flatrate || [];
+    return flatrate.map(p => ({
+      nombre: p.provider_name,
+      logo: `${TMDB_IMAGE_URL}${p.logo_path}`
+    }));
+  } catch (e) {
+    console.error("Error obteniendo proveedores:", e);
+    return null;
+  }
+}
+
+async function compartirPeliculaStory(elementId, tituloPeli) {
+  const tarjeta = document.getElementById(elementId);
+  if (!tarjeta) return;
+
+  try {
+    const canvas = await html2canvas(tarjeta, { backgroundColor: '#0f172a', scale: 2 });
+    const image = canvas.toDataURL("image/png");
+
+    const link = document.createElement('a');
+    link.download = `Story_${tituloPeli.replace(/\s+/g, '_')}.png`;
+    link.href = image;
+    link.click();
+  } catch (err) {
+    alert("No se pudo generar la tarjeta de imagen.");
+  }
+}
+
+function generarPromptRecomendacion() {
+  const pendientes = miColeccion.filter(p => p.estado === 'pendiente');
+  if (pendientes.length === 0) {
+    alert("No tienes películas en tu lista de pendientes.");
+    return;
+  }
+
+  const vistas = miColeccion.filter(p => p.estado === 'vista');
+  const topPelis = vistas.sort((a, b) => (b.notaPersonal || 0) - (a.notaPersonal || 0)).slice(0, 5).map(p => p.titulo);
+  const listaPendientes = pendientes.map(p => p.titulo).join(', ');
+
+  const promptText = `Soy cinéfilo. Mis películas favoritas son: ${topPelis.join(', ')}.\n` +
+    `De mi lista de películas pendientes: [${listaPendientes}], ¿cuáles 3 me recomiendas ver hoy y por qué corto motivo?`;
+
+  navigator.clipboard.writeText(promptText);
+  alert("¡Prompt copiado al portapapeles! Puedes pegarlo directamente en Gemini para recibir tus 3 recomendaciones personalizadas.");
+}

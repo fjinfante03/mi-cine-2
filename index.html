@@ -14,6 +14,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   
+  <!-- Chart.js para estadísticas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- html2canvas para la imagen de compartir en redes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
@@ -209,6 +214,92 @@
     </button>
     <input type="file" id="input-importar" class="hidden" accept=".json" onchange="importarColeccion(event)">
   </div>
+
+  <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between text-sm">
+  <div class="flex flex-wrap gap-3">
+    <!-- Filtro Género -->
+    <select id="filtro-genero" onchange="aplicarFiltrosYOrden()" class="bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-400">
+      <option value="todos">Todos los géneros</option>
+    </select>
+
+    <!-- Filtro Década -->
+    <select id="filtro-decada" onchange="aplicarFiltrosYOrden()" class="bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-400">
+      <option value="todas">Todas las décadas</option>
+      <option value="2020">2020s</option>
+      <option value="2010">2010s</option>
+      <option value="2000">2000s</option>
+      <option value="1990">1990s</option>
+      <option value="1980">1980s</option>
+      <option value="1970">1970s</option>
+      <option value="antiguas">Anteriores a 1970</option>
+    </select>
+
+    <!-- Filtro Nota -->
+    <select id="filtro-nota" onchange="aplicarFiltrosYOrden()" class="bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-400">
+      <option value="0">Todas las notas</option>
+      <option value="8">★ 8 o más</option>
+      <option value="9">★ 9 o más</option>
+      <option value="10">★ Solo 10s</option>
+    </select>
+  </div>
+
+  <!-- Criterio de Ordenación -->
+  <div class="flex items-center gap-2">
+    <span class="text-slate-400 font-medium">Ordenar por:</span>
+    <select id="orden-coleccion" onchange="aplicarFiltrosYOrden()" class="bg-slate-800 text-amber-400 font-semibold border border-slate-700 px-3 py-1.5 rounded-lg focus:outline-none">
+      <option value="recientes">Fecha de añadido (recientes)</option>
+
+      <option value="nota-desc">Nota personal (mayor a menor)</option>
+      <option value="estreno-desc">Año de estreno (nuevas primero)</option>
+      <option value="estreno-asc">Año de estreno (antiguas primero)</option>
+      <option value="duracion-desc">Duración (más largas)</option>
+      <option value="duracion-asc">Duración (más cortas)</option>
+    </select>
+  </div>
+</div>
+
+<section id="sec-estadisticas" class="seccion-app hidden">
+  <h2 class="text-2xl font-bold text-amber-400 mb-6">📊 Estadísticas e Insights</h2>
+
+  <!-- Tarjetas resumen: Tiempo total y Década favorita -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl text-center">
+      <span class="text-3xl">⏱️</span>
+      <h3 class="text-sm font-semibold text-slate-400 mt-2">Tiempo Total Invertido</h3>
+      <p id="stat-tiempo-total" class="text-2xl font-bold text-amber-400 mt-1">0 horas</p>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl text-center">
+      <span class="text-3xl">🎞️</span>
+      <h3 class="text-sm font-semibold text-slate-400 mt-2">Películas Vistas</h3>
+      <p id="stat-total-pelis" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl text-center">
+      <span class="text-3xl">📅</span>
+      <h3 class="text-sm font-semibold text-slate-400 mt-2">Década Favorita</h3>
+      <p id="stat-decada-fav" class="text-2xl font-bold text-amber-400 mt-1">-</p>
+    </div>
+  </div>
+
+  <!-- Gráfico de distribución de notas -->
+  <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-8">
+    <h3 class="text-lg font-bold text-slate-100 mb-4">Distribución de Calificaciones</h3>
+    <div class="h-64">
+      <canvas id="chartCalificaciones"></canvas>
+    </div>
+  </div>
+
+  <!-- Hall of Fame / Top 5 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+      <h3 class="text-md font-bold text-amber-400 mb-3">🎭 Top 5 Actores Más Vistos</h3>
+      <ul id="lista-top-actores" class="space-y-2 text-sm text-slate-300"></ul>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+      <h3 class="text-md font-bold text-amber-400 mb-3">🎬 Top 5 Directores Mejor Valorados</h3>
+      <ul id="lista-top-directores" class="space-y-2 text-sm text-slate-300"></ul>
+    </div>
+  </div>
+  </section>
 
   <script src="app.js"></script>
 </body>
