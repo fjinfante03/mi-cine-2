@@ -27,6 +27,7 @@ let esModoRegistro = false;
 let chartNotasInstance = null;
 let chartGenerosInstance = null;
 let chartPaisesInstance = null;
+let chartInstance = null;
 
 // --- GESTIÓN DE SESIÓN DE USUARIO ---
 auth.onAuthStateChanged(async (user) => {
@@ -130,6 +131,7 @@ function cambiarSeccion(seccionId) {
   } else if (seccionId === 'estadisticas') {
     document.getElementById('sec-estadisticas').classList.remove('hidden');
     actualizarGraficos();
+    renderizarEstadisticas();
   } else if (['actores', 'directores', 'guionistas', 'productores'].includes(seccionId)) {
     grupoActual = seccionId;
     document.getElementById('sec-grupo').classList.remove('hidden');
@@ -231,6 +233,7 @@ async function seleccionarYPuntuarPelicula(movieId) {
       : ['Desconocido'];
 
     const duracionMinutos = dataDetalles.runtime || 0;
+    const anioEstreno = dataDetalles.release_date ? dataDetalles.release_date.split('-')[0] : 'N/A';
 
     const notaPersonal = prompt(`Puntúa "${dataDetalles.title}" (del 1 al 10):`, "8");
     const notaFinal = notaPersonal ? parseFloat(notaPersonal) : 7.0;
@@ -239,16 +242,20 @@ async function seleccionarYPuntuarPelicula(movieId) {
       id: movieId,
       titulo: dataDetalles.title,
       sinopsis: dataDetalles.overview || 'Sin sinopsis disponible.',
-      estreno: dataDetalles.release_date ? dataDetalles.release_date.split('-')[0] : 'N/A',
+      estreno: anioEstreno,
+      anio: anioEstreno,
       poster: posterPeli,
       notaPersonal: notaFinal,
       duracion: duracionMinutos,
+      runtime: duracionMinutos,
       generos: generos,
       paises: paises,
       actores: actores,
       directores: directores.length > 0 ? directores : [{ nombre: 'Desconocido', foto: null }],
       guionistas: guionistas.length > 0 ? guionistas : [{ nombre: 'Desconocido', foto: null }],
-      productores: productores.length > 0 ? productores : [{ nombre: 'Desconocido', foto: null }]
+      productores: productores.length > 0 ? productores : [{ nombre: 'Desconocido', foto: null }],
+      estado: 'vista',
+      fechaAgregado: Date.now()
     };
 
     miColeccion.push(nuevaPelicula);
@@ -263,8 +270,14 @@ async function seleccionarYPuntuarPelicula(movieId) {
 
 // --- RENDERIZADO DE PANTALLAS ---
 function renderizarColeccion(lista) {
+  renderizarGridColeccion(lista);
+}
+
+function renderizarGridColeccion(lista) {
   const contenedor = document.getElementById('grid-peliculas');
-  document.getElementById('total-pelis').textContent = `Películas: ${lista.length}`;
+  if (document.getElementById('total-pelis')) {
+    document.getElementById('total-pelis').textContent = `Películas: ${lista.length}`;
+  }
   contenedor.innerHTML = '';
 
   if (lista.length === 0) {
@@ -275,7 +288,8 @@ function renderizarColeccion(lista) {
   lista.forEach(peli => {
     const nombresActores = (peli.actores || []).map(a => typeof a === 'string' ? a : a.nombre);
     const nombresDirectores = (peli.directores || []).map(d => typeof d === 'string' ? d : d.nombre);
-    const textoDuracion = peli.duracion ? ` • ${peli.duracion} min` : '';
+    const duracionVal = peli.duracion || peli.runtime;
+    const textoDuracion = duracionVal ? ` • ${duracionVal} min` : '';
 
     const card = document.createElement('div');
     card.className = 'card-peli bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between cursor-pointer hover:border-amber-500/50 transition';
@@ -290,7 +304,7 @@ function renderizarColeccion(lista) {
         </div>
         <div class="p-4 space-y-2">
           <h3 class="font-bold text-slate-100 text-base leading-snug">${peli.titulo}</h3>
-          <p class="text-xs text-amber-500/90 font-medium">${peli.estreno}${textoDuracion}</p>
+          <p class="text-xs text-amber-500/90 font-medium">${peli.estreno || peli.anio}${textoDuracion}</p>
           <p class="text-xs text-slate-400 line-clamp-3">${peli.sinopsis}</p>
           
           <div class="pt-2 text-xs text-slate-400 space-y-1">
@@ -348,22 +362,20 @@ function renderizarPantallaGrupo(propiedad) {
     });
   });
 
-  // Calcular nota promedio para cada persona
   const personasArray = Array.from(mapaPersonas.values()).map(persona => {
     const sumaNotas = persona.peliculas.reduce((acc, p) => acc + (p.notaPersonal || 0), 0);
     const notaPromedio = (sumaNotas / persona.peliculas.length).toFixed(1);
     return {
       ...persona,
-      notaPromedio: parseFloat(notaPromedio) // Guardamos como número para comparar correctamente
+      notaPromedio: parseFloat(notaPromedio)
     };
   });
 
-  // 🎯 ORDENAR: Primero por cantidad de películas (descendente), luego por nota promedio (descendente)
   personasArray.sort((a, b) => {
     if (b.peliculas.length !== a.peliculas.length) {
-      return b.peliculas.length - a.peliculas.length; // 1º Criterio: Cantidad de películas
+      return b.peliculas.length - a.peliculas.length;
     }
-    return b.notaPromedio - a.notaPromedio; // 2º Criterio: Nota promedio (en caso de empate)
+    return b.notaPromedio - a.notaPromedio;
   });
 
   contenedor.innerHTML = personasArray.map(persona => {
@@ -440,7 +452,7 @@ function verDetallePersona(nombrePersona, propiedad) {
       <img src="${p.poster}" class="w-16 h-24 object-cover rounded-lg border border-slate-700 flex-shrink-0">
       <div class="text-xs space-y-1">
         <div class="flex items-center justify-between gap-2">
-          <h5 class="font-bold text-amber-400 text-base">${p.titulo} <span class="text-slate-400 font-normal text-xs">(${p.estreno})</span></h5>
+          <h5 class="font-bold text-amber-400 text-base">${p.titulo} <span class="text-slate-400 font-normal text-xs">(${p.estreno || p.anio})</span></h5>
           <span class="bg-amber-500/10 text-amber-400 font-bold px-2 py-0.5 rounded text-xs">★ ${p.notaPersonal}</span>
         </div>
         <p class="text-slate-400 line-clamp-2 leading-relaxed">${p.sinopsis}</p>
@@ -490,13 +502,14 @@ function verDetallePelicula(idPeli) {
 
   const textoGeneros = peli.generos ? peli.generos.join(', ') : 'No especificados';
   const textoPaises = peli.paises ? peli.paises.join(', ') : 'No especificados';
-  const textoDuracion = peli.duracion ? `${peli.duracion} minutos` : 'Desconocida';
+  const duracionVal = peli.duracion || peli.runtime;
+  const textoDuracion = duracionVal ? `${duracionVal} minutos` : 'Desconocida';
 
   contenedor.innerHTML = `
     <div class="flex flex-col md:flex-row gap-6">
       <img src="${peli.poster}" class="w-48 h-72 object-cover rounded-xl border border-slate-700 flex-shrink-0 shadow-lg">
       <div class="space-y-3 text-sm flex-1">
-        <h3 class="text-3xl font-bold text-amber-500">${peli.titulo} <span class="text-slate-400 text-xl font-normal">(${peli.estreno})</span></h3>
+        <h3 class="text-3xl font-bold text-amber-500">${peli.titulo} <span class="text-slate-400 text-xl font-normal">(${peli.estreno || peli.anio})</span></h3>
         <p class="text-amber-400 font-bold text-lg">Tu valoración: ★ ${peli.notaPersonal} / 10</p>
         <div class="space-y-1.5 text-slate-300 pt-2 border-t border-slate-800">
           <p><strong>⏱️ Duración:</strong> ${textoDuracion}</p>
@@ -521,7 +534,7 @@ async function eliminarPelicula(id) {
   if (confirm('¿Seguro que quieres eliminar esta película?')) {
     miColeccion = miColeccion.filter(p => p.id !== id);
     await guardarEnFirebase();
-    renderizerColeccion(miColeccion);
+    renderizarColeccion(miColeccion);
   }
 }
 
@@ -543,7 +556,7 @@ function actualizarGraficos() {
   let sumaNotas = 0;
 
   miColeccion.forEach(p => {
-    minutosTotales += (p.duracion || 0);
+    minutosTotales += (p.duracion || p.runtime || 0);
     sumaNotas += (p.notaPersonal || 0);
   });
 
@@ -551,13 +564,13 @@ function actualizarGraficos() {
   const mins = minutosTotales % 60;
   const promedioNota = miColeccion.length > 0 ? (sumaNotas / miColeccion.length).toFixed(1) : '0.0';
 
-  document.getElementById('stat-horas').textContent = `${horas} h ${mins} min`;
-  document.getElementById('stat-total').textContent = miColeccion.length;
-  document.getElementById('stat-promedio').textContent = `${promedioNota} / 10`;
+  if (document.getElementById('stat-horas')) document.getElementById('stat-horas').textContent = `${horas} h ${mins} min`;
+  if (document.getElementById('stat-total')) document.getElementById('stat-total').textContent = miColeccion.length;
+  if (document.getElementById('stat-promedio')) document.getElementById('stat-promedio').textContent = `${promedioNota} / 10`;
 
-  const ctxNotas = document.getElementById('chartNotas').getContext('2d');
-  const ctxGeneros = document.getElementById('chartGeneros').getContext('2d');
-  const ctxPaises = document.getElementById('chartPaises').getContext('2d');
+  const canvasNotas = document.getElementById('chartNotas');
+  const canvasGeneros = document.getElementById('chartGeneros');
+  const canvasPaises = document.getElementById('chartPaises');
 
   if (chartNotasInstance) chartNotasInstance.destroy();
   if (chartGenerosInstance) chartGenerosInstance.destroy();
@@ -571,17 +584,19 @@ function actualizarGraficos() {
     else notasContador['<5']++;
   });
 
-  chartNotasInstance = new Chart(ctxNotas, {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(notasContador),
-      datasets: [{
-        data: Object.values(notasContador),
-        backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e']
-      }]
-    },
-    options: { plugins: { legend: { labels: { color: '#94a3b8' } } } }
-  });
+  if (canvasNotas) {
+    chartNotasInstance = new Chart(canvasNotas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(notasContador),
+        datasets: [{
+          data: Object.values(notasContador),
+          backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e']
+        }]
+      },
+      options: { plugins: { legend: { labels: { color: '#94a3b8' } } } }
+    });
+  }
 
   const generosCount = {};
   miColeccion.forEach(p => {
@@ -590,25 +605,27 @@ function actualizarGraficos() {
     });
   });
 
-  chartGenerosInstance = new Chart(ctxGeneros, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(generosCount),
-      datasets: [{
-        label: 'Películas',
-        data: Object.values(generosCount),
-        backgroundColor: '#3b82f6'
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      scales: {
-        x: { ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: '#1e293b' } },
-        y: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+  if (canvasGeneros) {
+    chartGenerosInstance = new Chart(canvasGeneros.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(generosCount),
+        datasets: [{
+          label: 'Películas',
+          data: Object.values(generosCount),
+          backgroundColor: '#3b82f6'
+        }]
       },
-      plugins: { legend: { display: false } }
-    }
-  });
+      options: {
+        indexAxis: 'y',
+        scales: {
+          x: { ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
 
   const paisesCount = {};
   miColeccion.forEach(p => {
@@ -617,25 +634,28 @@ function actualizarGraficos() {
     });
   });
 
-  chartPaisesInstance = new Chart(ctxPaises, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(paisesCount),
-      datasets: [{
-        label: 'Películas',
-        data: Object.values(paisesCount),
-        backgroundColor: '#10b981'
-      }]
-    },
-    options: {
-      scales: {
-        y: { ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: '#1e293b' } },
-        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+  if (canvasPaises) {
+    chartPaisesInstance = new Chart(canvasPaises.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(paisesCount),
+        datasets: [{
+          label: 'Películas',
+          data: Object.values(paisesCount),
+          backgroundColor: '#10b981'
+        }]
       },
-      plugins: { legend: { display: false } }
-    }
-  });
+      options: {
+        scales: {
+          y: { ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: '#1e293b' } },
+          x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
 }
+
 // Exportar colección a un archivo JSON
 function exportarColeccion() {
   if (miColeccion.length === 0) {
@@ -673,6 +693,7 @@ function importarColeccion(event) {
   };
   fileReader.readAsText(event.target.files[0]);
 }
+
 // Función para re-sincronizar y completar actores/directores/productores en películas viejas
 async function reSincronizarPeliculas() {
   if (miColeccion.length === 0) {
@@ -736,10 +757,15 @@ async function reSincronizarPeliculas() {
 }
 
 function aplicarFiltrosYOrden() {
-  const generoSel = document.getElementById('filtro-genero').value;
-  const decadaSel = document.getElementById('filtro-decada').value;
-  const notaMin = parseFloat(document.getElementById('filtro-nota').value) || 0;
-  const criterioOrden = document.getElementById('orden-coleccion').value;
+  const elemGenero = document.getElementById('filtro-genero');
+  const elemDecada = document.getElementById('filtro-decada');
+  const elemNota = document.getElementById('filtro-nota');
+  const elemOrden = document.getElementById('orden-coleccion');
+
+  const generoSel = elemGenero ? elemGenero.value : 'todos';
+  const decadaSel = elemDecada ? elemDecada.value : 'todas';
+  const notaMin = elemNota ? (parseFloat(elemNota.value) || 0) : 0;
+  const criterioOrden = elemOrden ? elemOrden.value : 'recientes';
 
   let filtradas = miColeccion.filter(p => (p.estado || 'vista') === 'vista');
 
@@ -751,7 +777,7 @@ function aplicarFiltrosYOrden() {
   // 2. Filtrar por Década
   if (decadaSel !== 'todas') {
     filtradas = filtradas.filter(p => {
-      const anio = parseInt(p.anio);
+      const anio = parseInt(p.anio || p.estreno);
       if (isNaN(anio)) return false;
       if (decadaSel === 'antiguas') return anio < 1970;
       const decadaNum = parseInt(decadaSel);
@@ -770,13 +796,13 @@ function aplicarFiltrosYOrden() {
       case 'nota-desc':
         return (b.notaPersonal || 0) - (a.notaPersonal || 0);
       case 'estreno-desc':
-        return (parseInt(b.anio) || 0) - (parseInt(a.anio) || 0);
+        return (parseInt(b.anio || b.estreno) || 0) - (parseInt(a.anio || a.estreno) || 0);
       case 'estreno-asc':
-        return (parseInt(a.anio) || 0) - (parseInt(b.anio) || 0);
+        return (parseInt(a.anio || a.estreno) || 0) - (parseInt(b.anio || b.estreno) || 0);
       case 'duracion-desc':
-        return (b.runtime || 0) - (a.runtime || 0);
+        return ((b.runtime || b.duracion) || 0) - ((a.runtime || a.duracion) || 0);
       case 'duracion-asc':
-        return (a.runtime || 0) - (b.runtime || 0);
+        return ((a.runtime || a.duracion) || 0) - ((b.runtime || b.duracion) || 0);
       case 'recientes':
       default:
         return (b.fechaAgregado || 0) - (a.fechaAgregado || 0);
@@ -786,115 +812,35 @@ function aplicarFiltrosYOrden() {
   renderizarGridColeccion(filtradas);
 }
 
-let chartInstance = null;
-
 function renderizarEstadisticas() {
   const vistas = miColeccion.filter(p => (p.estado || 'vista') === 'vista');
 
   // Total películas
-  document.getElementById('stat-total-pelis').textContent = vistas.length;
+  const elemTotal = document.getElementById('stat-total-pelis');
+  if (elemTotal) elemTotal.textContent = vistas.length;
 
   // 1. Tiempo Total Invertido
-  const minutosTotales = vistas.reduce((acc, p) => acc + (p.runtime || 0), 0);
+  const minutosTotales = vistas.reduce((acc, p) => acc + (p.runtime || p.duracion || 0), 0);
   const dias = Math.floor(minutosTotales / (60 * 24));
   const horas = Math.floor((minutosTotales % (60 * 24)) / 60);
-  document.getElementById('stat-tiempo-total').textContent = `${dias}d ${horas}h (${minutosTotales} min)`;
+  const elemTiempo = document.getElementById('stat-tiempo-total');
+  if (elemTiempo) elemTiempo.textContent = `${dias}d ${horas}h (${minutosTotales} min)`;
 
   // 2. Década Favorita
   const conteoDecadas = {};
   vistas.forEach(p => {
-    const anio = parseInt(p.anio);
+    const anio = parseInt(p.anio || p.estreno);
     if (!isNaN(anio)) {
       const decada = Math.floor(anio / 10) * 10;
       conteoDecadas[`${decada}s`] = (conteoDecadas[`${decada}s`] || 0) + 1;
     }
   });
-  const decadaFav = Object.keys(conteoDecadas).reduce((a, b) => conteoDecadas[a] > conteoDecadas[b] ? a : b, '-');
-  document.getElementById('stat-decada-fav').textContent = decadaFav;
 
-  // 3. Gráfico de Calificaciones (1 al 10)
-  const conteoNotas = Array(10).fill(0);
-  vistas.forEach(p => {
-    const nota = Math.round(p.notaPersonal || 0);
-    if (nota >= 1 && nota <= 10) conteoNotas[nota - 1]++;
-  });
+  const decadaFavKeys = Object.keys(conteoDecadas);
+  const decadaFav = decadaFavKeys.length > 0 
+    ? decadaFavKeys.reduce((a, b) => conteoDecadas[a] > conteoDecadas[b] ? a : b) 
+    : 'N/A';
 
-  const ctx = document.getElementById('chartCalificaciones').getContext('2d');
-  if (chartInstance) chartInstance.destroy();
-
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['1★', '2★', '3★', '4★', '5★', '6★', '7★', '8★', '9★', '10★'],
-      datasets: [{
-        label: 'Nº de Películas',
-        data: conteoNotas,
-        backgroundColor: '#f59e0b',
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { precision: 0, color: '#94a3b8' } },
-        x: { ticks: { color: '#94a3b8' } }
-      }
-    }
-  });
-}
-
-async function obtenerWatchProviders(movieId) {
-  try {
-    const res = await fetch(`${TMDB_BASE_URL}/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`);
-    const data = await res.json();
-    // Proveedores para España (ES) - Ajustable si se requiere otra región
-    const es = data.results?.ES; 
-    if (!es) return null;
-
-    const flatrate = es.flatrate || [];
-    return flatrate.map(p => ({
-      nombre: p.provider_name,
-      logo: `${TMDB_IMAGE_URL}${p.logo_path}`
-    }));
-  } catch (e) {
-    console.error("Error obteniendo proveedores:", e);
-    return null;
-  }
-}
-
-async function compartirPeliculaStory(elementId, tituloPeli) {
-  const tarjeta = document.getElementById(elementId);
-  if (!tarjeta) return;
-
-  try {
-    const canvas = await html2canvas(tarjeta, { backgroundColor: '#0f172a', scale: 2 });
-    const image = canvas.toDataURL("image/png");
-
-    const link = document.createElement('a');
-    link.download = `Story_${tituloPeli.replace(/\s+/g, '_')}.png`;
-    link.href = image;
-    link.click();
-  } catch (err) {
-    alert("No se pudo generar la tarjeta de imagen.");
-  }
-}
-
-function generarPromptRecomendacion() {
-  const pendientes = miColeccion.filter(p => p.estado === 'pendiente');
-  if (pendientes.length === 0) {
-    alert("No tienes películas en tu lista de pendientes.");
-    return;
-  }
-
-  const vistas = miColeccion.filter(p => p.estado === 'vista');
-  const topPelis = vistas.sort((a, b) => (b.notaPersonal || 0) - (a.notaPersonal || 0)).slice(0, 5).map(p => p.titulo);
-  const listaPendientes = pendientes.map(p => p.titulo).join(', ');
-
-  const promptText = `Soy cinéfilo. Mis películas favoritas son: ${topPelis.join(', ')}.\n` +
-    `De mi lista de películas pendientes: [${listaPendientes}], ¿cuáles 3 me recomiendas ver hoy y por qué corto motivo?`;
-
-  navigator.clipboard.writeText(promptText);
-  alert("¡Prompt copiado al portapapeles! Puedes pegarlo directamente en Gemini para recibir tus 3 recomendaciones personalizadas.");
+  const elemDecada = document.getElementById('stat-decada-fav');
+  if (elemDecada) elemDecada.textContent = decadaFav;
 }
